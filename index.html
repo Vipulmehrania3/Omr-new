@@ -1,1673 +1,1991 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>NEET OMR Practice</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #0A0A0F;
-  --surface: rgba(255,255,255,0.06);
-  --surface2: rgba(255,255,255,0.10);
-  --surface3: rgba(255,255,255,0.03);
-  --border: rgba(255,255,255,0.10);
-  --border2: rgba(255,255,255,0.16);
-  --text: #F0F0F5;
-  --text2: rgba(255,255,255,0.50);
-  --accent: #5B8DEF;
-  --accent2: #4ECDC4;
-  --green: #4CAF82;
-  --red: #E06B7A;
-  --amber: #E8A838;
-  --glass-blur: 16px;
-  --radius: 16px;
-  --radius-sm: 10px;
-}
-.light-mode {
-  --bg: #F0EDE6;
-  --surface: rgba(0,0,0,0.04);
-  --surface2: rgba(0,0,0,0.07);
-  --surface3: rgba(0,0,0,0.02);
-  --border: rgba(0,0,0,0.08);
-  --border2: rgba(0,0,0,0.14);
-  --text: #1A1A1F;
-  --text2: rgba(0,0,0,0.42);
-  --glass-blur: 12px;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serenity Spa - Massage Therapy Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-body {
-  font-family:'Inter',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100dvh;
-  overflow-x:hidden;
-  transition: background 0.6s ease, color 0.5s ease;
-}
+        body {
+            overflow: hidden;
+            font-family: 'Georgia', serif;
+            background: #0a0a0a;
+        }
 
-/* GLASS */
-.glass {
-  background: var(--surface);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  position: relative;
-  overflow: hidden;
-}
-.glass::before {
-  content:'';
-  position:absolute;
-  top:0;left:0;right:0;
-  height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);
-  pointer-events:none;
-}
-.light-mode .glass::before {
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent);
-}
-.glass::after {
-  content:'';
-  position:absolute;
-  top:0;left:0;right:0;bottom:0;
-  background:linear-gradient(135deg,rgba(255,255,255,0.04) 0%,transparent 50%,rgba(255,255,255,0.02) 100%);
-  pointer-events:none;
-}
-.light-mode .glass::after {
-  background:linear-gradient(135deg,rgba(255,255,255,0.25) 0%,transparent 40%,rgba(255,255,255,0.1) 100%);
-}
-.glass-strong {
-  background: var(--surface2);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  position:relative;
-  overflow:hidden;
-}
-.glass-strong::before {
-  content:'';
-  position:absolute;
-  top:0;left:0;right:0;
-  height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.22),transparent);
-  pointer-events:none;
-}
+        #gameCanvas {
+            display: block;
+        }
 
-/* BTN */
-.glow-btn {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color:#fff;
-  border:none;
-  padding:14px 32px;
-  border-radius:50px;
-  font-family:'Inter',sans-serif;
-  font-weight:700;
-  font-size:15px;
-  cursor:pointer;
-  position:relative;
-  overflow:hidden;
-  transition: transform 0.2s, box-shadow 0.3s;
-  box-shadow: 0 4px 20px rgba(91,141,239,0.25);
-}
-.glow-btn:active { transform:scale(0.96); }
-.glow-btn::after {
-  content:'';
-  position:absolute;
-  top:-50%;left:-50%;
-  width:200%;height:200%;
-  background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,0.12) 50%,transparent 60%);
-  transform:translateX(-100%);
-  transition: transform 0.6s;
-}
-.glow-btn:hover::after { transform:translateX(100%); }
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
 
-/* PAGES */
-.page {
-  display:none;
-  min-height:100dvh;
-  opacity:0;
-  transform:translateY(20px);
-}
-.page.active {
-  display:block;
-  animation: pageIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards;
-}
-@keyframes pageIn { to { opacity:1; transform:translateY(0); } }
-@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-@keyframes fadeInScale { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
-@keyframes slideUp {
-  from { opacity:0; transform:translateY(24px); }
-  to { opacity:1; transform:translateY(0); }
-}
-@keyframes popIn {
-  0% { opacity:0; transform:scale(0.8); }
-  70% { transform:scale(1.04); }
-  100% { opacity:1; transform:scale(1); }
-}
-@keyframes bounceIn {
-  0% { opacity:0; transform:translateY(30px) scale(0.95); }
-  60% { transform:translateY(-6px) scale(1.01); }
-  100% { opacity:1; transform:translateY(0) scale(1); }
-}
-@keyframes ringDraw { from { stroke-dashoffset: 440; } }
-@keyframes float {
-  0%,100% { transform:translateY(0) rotate(0deg); }
-  50% { transform:translateY(-8px) rotate(1.5deg); }
-}
-@keyframes pulse {
-  0%,100% { opacity:1; }
-  50% { opacity:0.5; }
-}
+        #ui-overlay > * {
+            pointer-events: auto;
+        }
 
-/* BG AMBIENCE */
-.bg-glow {
-  position:fixed;
-  border-radius:50%;
-  filter:blur(100px);
-  pointer-events:none;
-  z-index:0;
-  will-change:auto;
-}
-.light-mode .bg-glow { opacity:0.06 !important; }
+        /* Title Screen */
+        #title-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 30%, #1a3a2e 60%, #0a1a2e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
 
-/* HEADER */
-.app-header {
-  position:sticky;top:0;z-index:100;
-  padding:12px 20px;
-  display:flex;align-items:center;justify-content:space-between;
-  background:rgba(10,10,15,0.75);
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--border);
-}
-.light-mode .app-header {
-  background:rgba(240,237,230,0.8);
-}
-.app-title {
-  font-weight:900;font-size:18px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
+        #title-screen h1 {
+            font-size: 4em;
+            color: #e8d5b7;
+            text-shadow: 0 0 30px rgba(232, 213, 183, 0.5);
+            margin-bottom: 10px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
 
-/* HOME */
-.hero-icon {
-  width:80px;height:80px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border-radius:24px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:36px;
-  margin:0 auto 16px;
-  box-shadow:0 8px 32px rgba(91,141,239,0.25);
-  animation: float 3s ease-in-out infinite;
-}
-.setup-card {
-  padding:20px;
-  margin-bottom:14px;
-}
-.setup-label {
-  font-size:12px;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:1.5px;
-  color:var(--text2);
-  margin-bottom:10px;
-}
-.counter-row {
-  display:flex;align-items:center;justify-content:center;gap:12px;
-}
-.counter-btn {
-  width:40px;height:40px;
-  border-radius:12px;
-  border:1px solid var(--border2);
-  background:var(--surface);
-  color:var(--text);
-  font-size:18px;font-weight:700;
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:all 0.2s;
-}
-.counter-btn:active { transform:scale(0.9); background:var(--surface2); }
-.counter-val {
-  font-family:'JetBrains Mono',monospace;
-  font-size:28px;font-weight:700;
-  min-width:60px;text-align:center;
-  color:var(--text);
-}
-.timer-row {
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.timer-input {
-  width:60px;
-  background:var(--surface2);
-  border:1px solid var(--border2);
-  border-radius:10px;
-  color:var(--text);
-  font-family:'JetBrains Mono',monospace;
-  font-size:20px;font-weight:700;
-  text-align:center;
-  padding:8px 4px;
-  outline:none;
-}
-.timer-input:focus { border-color:var(--accent); }
-.timer-sep { font-size:22px;font-weight:900;color:var(--text2); }
+        #title-screen .subtitle {
+            font-size: 1.3em;
+            color: #b89a7a;
+            margin-bottom: 50px;
+            letter-spacing: 3px;
+        }
 
-.test-name-input {
-  width:100%;
-  background:var(--surface2);
-  border:1px solid var(--border2);
-  border-radius:12px;
-  color:var(--text);
-  font-family:'Inter',sans-serif;
-  font-size:15px;font-weight:600;
-  padding:12px 16px;
-  outline:none;
-  transition:border-color 0.3s;
-}
-.test-name-input:focus { border-color:var(--accent); }
-.test-name-input::placeholder { color:var(--text2); }
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(232, 213, 183, 0.3); }
+            to { text-shadow: 0 0 40px rgba(232, 213, 183, 0.7), 0 0 80px rgba(232, 213, 183, 0.3); }
+        }
 
-/* TOGGLE */
-.toggle-wrap {
-  display:flex;align-items:center;gap:10px;justify-content:center;
-}
-.toggle-track {
-  width:48px;height:26px;
-  border-radius:13px;
-  background:var(--surface2);
-  border:1px solid var(--border2);
-  position:relative;cursor:pointer;
-  transition:background 0.3s;
-}
-.toggle-track.on { background:var(--accent); border-color:var(--accent); }
-.toggle-knob {
-  width:20px;height:20px;
-  border-radius:50%;
-  background:#fff;
-  position:absolute;top:2px;left:2px;
-  transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  box-shadow:0 2px 6px rgba(0,0,0,0.2);
-}
-.toggle-track.on .toggle-knob { transform:translateX(22px); }
+        .btn {
+            padding: 15px 50px;
+            font-size: 1.2em;
+            font-family: 'Georgia', serif;
+            border: 2px solid #e8d5b7;
+            background: rgba(232, 213, 183, 0.1);
+            color: #e8d5b7;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.3s;
+            margin: 10px;
+            letter-spacing: 2px;
+        }
 
-/* THEME */
-.theme-switch {
-  display:flex;align-items:center;gap:8px;
-  padding:6px 12px;
-  border-radius:20px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  cursor:pointer;
-  font-size:13px;font-weight:600;
-  color:var(--text2);
-  transition:all 0.3s;
-}
-.theme-switch:hover { background:var(--surface2); }
+        .btn:hover {
+            background: rgba(232, 213, 183, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(232, 213, 183, 0.3);
+        }
 
-/* RANGE */
-input[type="range"] {
-  -webkit-appearance:none;
-  width:100%;height:6px;
-  border-radius:3px;
-  background:var(--surface2);
-  outline:none;
-  margin:8px 0;
-}
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance:none;
-  width:22px;height:22px;
-  border-radius:50%;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  cursor:pointer;
-  box-shadow:0 2px 8px rgba(91,141,239,0.3);
-}
+        /* HUD */
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: none;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
 
-/* OMR */
-.omr-container {
-  display:flex;
-  min-height:100dvh;
-}
-.omr-main {
-  flex:1;
-  padding:12px;
-  padding-top:56px;
-  padding-right:60px;
-  overflow-y:auto;
-}
-.q-row {
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:8px 10px;
-  margin-bottom:6px;
-  border-radius:var(--radius-sm);
-  transition: background 0.2s;
-}
-.q-num {
-  font-family:'JetBrains Mono',monospace;
-  font-weight:700;
-  font-size:13px;
-  color:var(--text2);
-  min-width:28px;
-  text-align:right;
-}
-.q-bubbles {
-  display:flex;gap:10px;
-}
-.bubble {
-  width:var(--bubble-size,42px);
-  height:var(--bubble-size,42px);
-  border-radius:50%;
-  border:2px solid rgba(150,150,150,0.3);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'JetBrains Mono',monospace;
-  font-weight:700;
-  font-size:calc(var(--bubble-size,42px) * 0.35);
-  color:var(--text2);
-  cursor:pointer;
-  transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-  position:relative;
-  user-select:none;
-}
-.bubble:active { transform:scale(0.88); }
-.bubble.filled {
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border-color:var(--accent);
-  color:#fff;
-  box-shadow:0 0 14px rgba(91,141,239,0.3);
-  transform:scale(1.08);
-}
+        .hud-panel {
+            background: rgba(20, 10, 30, 0.85);
+            border: 1px solid rgba(232, 213, 183, 0.3);
+            border-radius: 15px;
+            padding: 15px 25px;
+            color: #e8d5b7;
+            backdrop-filter: blur(10px);
+        }
 
-/* Q NAV */
-.q-nav {
-  width:54px;
-  position:fixed;
-  right:0;top:56px;bottom:0;
-  background:rgba(10,10,15,0.6);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  border-left:1px solid var(--border);
-  overflow-y:auto;
-  z-index:90;
-  display:flex;
-  flex-direction:column;
-  padding:6px 0;
-  scrollbar-width:none;
-}
-.light-mode .q-nav { background:rgba(240,237,230,0.7); }
-.q-nav::-webkit-scrollbar { display:none; }
-.q-nav-item {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:6px 2px;
-  margin:2px 6px;
-  border-radius:8px;
-  font-family:'JetBrains Mono',monospace;
-  font-weight:700;
-  font-size:13px;
-  color:var(--text2);
-  cursor:pointer;
-  transition:all 0.2s;
-  min-height:36px;
-}
-.q-nav-item.answered {
-  background:rgba(76,175,130,0.2);
-  color:var(--green);
-}
-.q-nav-item.current {
-  background:var(--surface2);
-  color:var(--text);
-}
-.q-nav-item .nav-opt {
-  font-size:9px;
-  opacity:0.7;
-}
+        .stat-bar {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            gap: 10px;
+        }
 
-/* SUBMIT BAR */
-.submit-bar {
-  position:fixed;top:56px;left:0;right:54px;z-index:95;
-  padding:8px 12px;
-  display:flex;align-items:center;gap:8px;
-  background:rgba(10,10,15,0.65);
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--border);
-}
-.light-mode .submit-bar {
-  background:rgba(240,237,230,0.75);
-}
-.submit-btn {
-  padding:10px 20px;
-  border-radius:12px;
-  border:none;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#fff;
-  font-family:'Inter',sans-serif;
-  font-weight:700;
-  font-size:13px;
-  cursor:pointer;
-  transition: transform 0.2s, box-shadow 0.3s;
-  box-shadow:0 2px 12px rgba(91,141,239,0.2);
-  white-space:nowrap;
-  position:relative;
-  overflow:hidden;
-}
-.submit-btn:active { transform:scale(0.95); }
-.submit-btn::after {
-  content:'';
-  position:absolute;
-  top:0;left:0;right:0;bottom:0;
-  background:linear-gradient(135deg,rgba(255,255,255,0.1) 0%,transparent 50%);
-  pointer-events:none;
-}
-.bubble-size-bar {
-  flex:1;
-  display:flex;align-items:center;gap:6px;
-}
-.bubble-size-bar label {
-  font-size:10px;
-  font-weight:700;
-  color:var(--text2);
-  text-transform:uppercase;
-  letter-spacing:0.5px;
-  white-space:nowrap;
-}
-.bubble-size-bar input[type="range"] {
-  flex:1;min-width:60px;margin:0;
-}
+        .stat-bar label {
+            font-size: 0.85em;
+            width: 80px;
+            color: #b89a7a;
+        }
 
-/* TIMER */
-.timer-display {
-  font-family:'JetBrains Mono',monospace;
-  font-weight:700;
-  font-size:14px;
-  padding:4px 10px;
-  border-radius:8px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  color:var(--amber);
-}
-.timer-display.urgent {
-  color:var(--red);
-  animation:pulse 1s infinite;
-}
+        .bar-container {
+            width: 150px;
+            height: 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            overflow: hidden;
+        }
 
-/* CHECK PAGE */
-.check-area {
-  width:100%;height:100dvh;
-  display:flex;align-items:center;justify-content:center;
-  position:relative;
-  overflow:hidden;
-  touch-action:none;
-}
-.check-bg {
-  position:absolute;
-  top:0;left:0;right:0;bottom:0;
-  pointer-events:none;
-  z-index:1;
-}
-.check-card {
-  width:240px;height:260px;
-  border-radius:24px;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  cursor:grab;
-  position:relative;
-  z-index:10;
-  user-select:none;
-  touch-action:none;
-  will-change:transform;
-  transition:box-shadow 0.15s, border-color 0.15s;
-}
-.check-card .q-label {
-  font-size:12px;font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:2px;
-  color:var(--text2);
-  margin-bottom:8px;
-}
-.check-card .q-number {
-  font-family:'JetBrains Mono',monospace;
-  font-size:64px;font-weight:900;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
-.check-progress-bar {
-  position:absolute;
-  top:56px;left:0;right:0;
-  height:3px;
-  background:var(--surface2);
-  z-index:20;
-}
-.check-progress-fill {
-  height:100%;
-  background:linear-gradient(90deg,var(--accent),var(--accent2));
-  border-radius:0 2px 2px 0;
-  transition:width 0.4s ease;
-}
-.check-progress-text {
-  position:absolute;
-  bottom:24px;left:0;right:0;
-  text-align:center;
-  font-size:13px;font-weight:600;
-  color:var(--text2);
-  z-index:20;
-}
-.corner-label {
-  position:absolute;
-  font-family:'JetBrains Mono',monospace;
-  font-weight:900;
-  font-size:20px;
-  width:50px;height:50px;
-  border-radius:14px;
-  display:flex;align-items:center;justify-content:center;
-  transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-  opacity:0.3;
-  z-index:15;
-}
-.corner-label.active {
-  opacity:1;
-  transform:scale(1.4);
-}
-.glow-trail {
-  position:absolute;
-  width:180px;height:180px;
-  border-radius:50%;
-  pointer-events:none;
-  z-index:5;
-  opacity:0;
-  filter:blur(50px);
-  transition:opacity 0.15s;
-}
+        .bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
 
-/* RESULTS */
-.result-ring-wrap {
-  width:200px;height:200px;
-  margin:0 auto 20px;
-  position:relative;
-}
-.result-ring-wrap svg {
-  width:200px;height:200px;
-  transform:rotate(-90deg);
-}
-.result-ring-bg {
-  fill:none;
-  stroke:var(--surface2);
-  stroke-width:10;
-}
-.result-ring-fg {
-  fill:none;
-  stroke:url(#ringGrad);
-  stroke-width:10;
-  stroke-linecap:round;
-  stroke-dasharray:440;
-  stroke-dashoffset:440;
-}
-.result-ring-fg.animate {
-  animation:ringDraw 1.5s cubic-bezier(0.22,1,0.36,1) forwards;
-}
-.result-center {
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  text-align:center;
-}
-.result-score {
-  font-family:'JetBrains Mono',monospace;
-  font-size:40px;font-weight:900;
-  color:var(--text);
-  opacity:0;
-}
-.result-score.show {
-  animation:fadeIn 0.8s 0.8s forwards;
-}
-.result-total-label {
-  font-size:12px;font-weight:700;
-  color:var(--text2);
-  text-transform:uppercase;
-  letter-spacing:1px;
-  opacity:0;
-}
-.result-total-label.show {
-  animation:fadeIn 0.6s 1s forwards;
-}
+        .bar-fill.relaxation { background: linear-gradient(90deg, #4a9eff, #7bc8ff); }
+        .bar-fill.satisfaction { background: linear-gradient(90deg, #ff6b9d, #ffa3c4); }
+        .bar-fill.energy { background: linear-gradient(90deg, #ffd700, #ffed4a); }
+        .bar-fill.mood { background: linear-gradient(90deg, #50c878, #7ddf9e); }
 
-.stat-grid {
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:10px;
-  margin:16px 0;
-}
-.stat-card {
-  text-align:center;
-  padding:14px 8px;
-  border-radius:var(--radius-sm);
-}
-.stat-val {
-  font-family:'JetBrains Mono',monospace;
-  font-size:24px;font-weight:900;
-}
-.stat-lbl {
-  font-size:11px;font-weight:700;
-  color:var(--text2);
-  text-transform:uppercase;
-  letter-spacing:0.5px;
-  margin-top:4px;
-}
+        #coins-display {
+            font-size: 1.2em;
+            color: #ffd700;
+        }
 
-/* ANSWER SHEET */
-.ans-row {
-  display:flex;
-  align-items:center;
-  padding:12px 14px;
-  margin-bottom:8px;
-  border-radius:var(--radius-sm);
-  gap:10px;
-}
-.ans-qnum {
-  font-family:'JetBrains Mono',monospace;
-  font-weight:900;
-  font-size:15px;
-  min-width:32px;
-  color:var(--text2);
-}
-.ans-tags {
-  display:flex;flex-wrap:wrap;gap:6px;flex:1;
-}
-.ans-tag {
-  padding:4px 10px;
-  border-radius:6px;
-  font-family:'JetBrains Mono',monospace;
-  font-weight:700;
-  font-size:12px;
-}
-.ans-marks {
-  font-family:'JetBrains Mono',monospace;
-  font-weight:900;
-  font-size:14px;
-  min-width:36px;
-  text-align:right;
-}
+        /* Dialogue Box */
+        #dialogue-box {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            max-width: 800px;
+            background: rgba(15, 8, 25, 0.92);
+            border: 1px solid rgba(232, 213, 183, 0.4);
+            border-radius: 20px;
+            padding: 25px 30px;
+            display: none;
+            backdrop-filter: blur(15px);
+        }
 
-/* HISTORY */
-.history-item {
-  padding:14px 16px;
-  margin-bottom:8px;
-  cursor:pointer;
-  transition:all 0.2s;
-}
-.history-item:active { transform:scale(0.98); }
-.search-input {
-  width:100%;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:12px;
-  color:var(--text);
-  font-family:'Inter',sans-serif;
-  font-size:14px;font-weight:600;
-  padding:10px 14px;
-  outline:none;
-  margin-bottom:12px;
-}
-.search-input::placeholder { color:var(--text2); }
+        #speaker-name {
+            font-size: 1.1em;
+            color: #ffa3c4;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
 
-/* MODAL */
-.modal-overlay {
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,0.6);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-  display:flex;align-items:center;justify-content:center;
-  z-index:200;
-  animation:fadeIn 0.2s;
-}
-.modal-box {
-  padding:24px;
-  max-width:300px;
-  width:90%;
-  text-align:center;
-}
-.modal-box h3 {
-  font-size:16px;font-weight:900;
-  margin-bottom:8px;
-}
-.modal-box p {
-  font-size:13px;color:var(--text2);
-  margin-bottom:16px;
-  line-height:1.5;
-}
-.modal-btns {
-  display:flex;gap:10px;justify-content:center;
-}
-.modal-btn {
-  padding:10px 20px;
-  border-radius:10px;
-  border:1px solid var(--border2);
-  background:var(--surface);
-  color:var(--text);
-  font-weight:700;font-size:13px;
-  cursor:pointer;
-  transition:all 0.2s;
-}
-.modal-btn:active { transform:scale(0.95); }
-.modal-btn.confirm {
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#fff;border:none;
-}
+        #dialogue-text {
+            font-size: 1em;
+            color: #e8d5b7;
+            line-height: 1.6;
+            min-height: 50px;
+        }
 
-.toast {
-  position:fixed;top:20px;left:50%;transform:translateX(-50%);
-  padding:10px 20px;border-radius:12px;
-  background:var(--surface2);
-  backdrop-filter:blur(12px);
-  border:1px solid var(--border);
-  font-size:13px;font-weight:700;
-  z-index:300;
-  animation:slideDown 0.4s cubic-bezier(0.22,1,0.36,1);
-}
-@keyframes slideDown {
-  from { opacity:0;transform:translateX(-50%) translateY(-20px); }
-  to { opacity:1;transform:translateX(-50%) translateY(0); }
-}
-</style>
+        #dialogue-choices {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .choice-btn {
+            padding: 10px 20px;
+            font-size: 0.95em;
+            font-family: 'Georgia', serif;
+            border: 1px solid rgba(232, 213, 183, 0.3);
+            background: rgba(232, 213, 183, 0.08);
+            color: #e8d5b7;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            background: rgba(232, 213, 183, 0.2);
+            border-color: rgba(232, 213, 183, 0.6);
+            padding-left: 30px;
+        }
+
+        /* Therapist Selection */
+        #therapist-select {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 5, 20, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        #therapist-select h2 {
+            font-size: 2.5em;
+            color: #e8d5b7;
+            margin-bottom: 40px;
+        }
+
+        .therapist-grid {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 1000px;
+        }
+
+        .therapist-card {
+            width: 250px;
+            background: rgba(30, 15, 45, 0.9);
+            border: 2px solid rgba(232, 213, 183, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.4s;
+            text-align: center;
+        }
+
+        .therapist-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(232, 213, 183, 0.6);
+            box-shadow: 0 15px 40px rgba(232, 213, 183, 0.15);
+        }
+
+        .therapist-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+        }
+
+        .therapist-card h3 {
+            color: #ffa3c4;
+            font-size: 1.3em;
+            margin-bottom: 5px;
+        }
+
+        .therapist-card .specialty {
+            color: #b89a7a;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .therapist-card .desc {
+            color: #8a7a6a;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+
+        .therapist-card .price {
+            color: #ffd700;
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+
+        /* Massage UI */
+        #massage-ui {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .massage-btn {
+            padding: 12px 25px;
+            font-size: 0.95em;
+            font-family: 'Georgia', serif;
+            border: 1px solid rgba(232, 213, 183, 0.3);
+            background: rgba(20, 10, 35, 0.85);
+            color: #e8d5b7;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .massage-btn:hover {
+            background: rgba(232, 213, 183, 0.2);
+            transform: scale(1.05);
+        }
+
+        .massage-btn.active {
+            border-color: #ffa3c4;
+            background: rgba(255, 163, 196, 0.15);
+        }
+
+        /* Timer */
+        #session-timer {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5em;
+            color: #e8d5b7;
+            display: none;
+            background: rgba(20, 10, 30, 0.85);
+            padding: 8px 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(232, 213, 183, 0.3);
+        }
+
+        /* Notification */
+        .notification {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 10, 35, 0.9);
+            border: 1px solid #ffd700;
+            color: #ffd700;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            animation: slideDown 0.5s ease, fadeOut 0.5s ease 2s forwards;
+            z-index: 200;
+        }
+
+        @keyframes slideDown {
+            from { top: 40px; opacity: 0; }
+            to { top: 80px; opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; top: 60px; }
+        }
+
+        /* Back button */
+        #back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 0.9em;
+            font-family: 'Georgia', serif;
+            border: 1px solid rgba(232, 213, 183, 0.3);
+            background: rgba(20, 10, 35, 0.85);
+            color: #e8d5b7;
+            cursor: pointer;
+            border-radius: 10px;
+            display: none;
+            z-index: 60;
+        }
+
+        /* Story progress indicator */
+        #story-progress {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            color: rgba(232, 213, 183, 0.4);
+            font-size: 0.8em;
+            display: none;
+        }
+
+        /* Loading */
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
+        /* Chapter screen */
+        #chapter-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 2, 10, 0.97);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 80;
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        #chapter-screen h2 {
+            font-size: 1.2em;
+            color: #b89a7a;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+        }
+
+        #chapter-screen h1 {
+            font-size: 3em;
+            color: #e8d5b7;
+            text-shadow: 0 0 30px rgba(232, 213, 183, 0.3);
+        }
+
+        /* Lobby navigation */
+        #lobby-nav {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            gap: 15px;
+        }
+
+        .lobby-btn {
+            padding: 12px 30px;
+            font-size: 1em;
+            font-family: 'Georgia', serif;
+            border: 1px solid rgba(232, 213, 183, 0.4);
+            background: rgba(20, 10, 35, 0.85);
+            color: #e8d5b7;
+            cursor: pointer;
+            border-radius: 15px;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .lobby-btn:hover {
+            background: rgba(232, 213, 183, 0.2);
+            transform: translateY(-3px);
+        }
+
+        /* Emote particles */
+        .emote-particle {
+            position: absolute;
+            font-size: 2em;
+            animation: floatUp 2s ease-out forwards;
+            pointer-events: none;
+            z-index: 150;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(0.5); }
+            50% { opacity: 1; transform: translateY(-50px) scale(1.2); }
+            100% { opacity: 0; transform: translateY(-100px) scale(0.8); }
+        }
+    </style>
 </head>
 <body>
 
-<!-- BG AMBIENCE -->
-<div class="bg-glow" style="width:280px;height:280px;top:-100px;left:-80px;background:var(--accent);opacity:0.12;"></div>
-<div class="bg-glow" style="width:250px;height:250px;bottom:-80px;right:-100px;background:var(--accent2);opacity:0.10;"></div>
-<div class="bg-glow" style="width:200px;height:200px;top:40%;left:50%;background:var(--amber);opacity:0.05;"></div>
+<canvas id="gameCanvas"></canvas>
 
-<!-- ============ HOME PAGE ============ -->
-<div class="page active" id="homePage">
-  <div class="app-header">
-    <div class="app-title">OMR Practice</div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div class="theme-switch" onclick="toggleTheme()">
-        <span id="themeIcon">🌙</span>
-        <span id="themeLabel">Dark</span>
-      </div>
-      <div style="font-size:22px;cursor:pointer;padding:4px;" onclick="showPage('historyPage');renderHistory();">🕐</div>
-    </div>
-  </div>
-
-  <div style="padding:20px 16px 100px;max-width:420px;margin:0 auto;">
-    <div style="text-align:center;padding-top:20px;margin-bottom:24px;">
-      <div class="hero-icon">📝</div>
-      <h1 style="font-size:24px;font-weight:900;margin-bottom:4px;">NEET OMR Sheet</h1>
-      <p style="font-size:13px;color:var(--text2);font-weight:600;">Practice. Check. Improve.</p>
+<div id="ui-overlay">
+    <!-- Title Screen -->
+    <div id="title-screen">
+        <h1>✨ Serenity Spa ✨</h1>
+        <p class="subtitle">MASSAGE THERAPY SIMULATOR</p>
+        <button class="btn" onclick="startGame()">Begin Journey</button>
+        <button class="btn" onclick="showCredits()" style="font-size:0.9em; padding:10px 30px; margin-top:5px;">About</button>
     </div>
 
-    <!-- TEST NAME -->
-    <div class="glass setup-card" style="animation:bounceIn 0.6s both;">
-      <div class="setup-label">Test Name</div>
-      <input type="text" class="test-name-input" id="testNameInput" placeholder="e.g. Physics Chapter 5" maxlength="40">
+    <!-- Chapter Screen -->
+    <div id="chapter-screen">
+        <h2 id="chapter-label">CHAPTER 1</h2>
+        <h1 id="chapter-title">A New Beginning</h1>
     </div>
 
-    <!-- QUESTION COUNT -->
-    <div class="glass setup-card" style="animation:bounceIn 0.6s 0.1s both;">
-      <div class="setup-label">Number of Questions</div>
-      <div class="counter-row">
-        <button class="counter-btn" onclick="changeQ(-10)">−10</button>
-        <button class="counter-btn" onclick="changeQ(-1)">−1</button>
-        <div class="counter-val" id="qCount">30</div>
-        <button class="counter-btn" onclick="changeQ(1)">+1</button>
-        <button class="counter-btn" onclick="changeQ(10)">+10</button>
-      </div>
-    </div>
-
-    <!-- TIMER -->
-    <div class="glass setup-card" style="animation:bounceIn 0.6s 0.2s both;">
-      <div class="setup-label">Timer</div>
-      <div class="toggle-wrap" style="margin-bottom:12px;">
-        <span style="font-size:13px;font-weight:600;color:var(--text2);">Off</span>
-        <div class="toggle-track" id="timerToggle" onclick="toggleTimer()">
-          <div class="toggle-knob"></div>
+    <!-- HUD -->
+    <div id="hud">
+        <div class="hud-panel">
+            <div class="stat-bar">
+                <label>Relaxation</label>
+                <div class="bar-container"><div class="bar-fill relaxation" id="bar-relaxation" style="width:20%"></div></div>
+            </div>
+            <div class="stat-bar">
+                <label>Satisfaction</label>
+                <div class="bar-container"><div class="bar-fill satisfaction" id="bar-satisfaction" style="width:0%"></div></div>
+            </div>
+            <div class="stat-bar">
+                <label>Energy</label>
+                <div class="bar-container"><div class="bar-fill energy" id="bar-energy" style="width:100%"></div></div>
+            </div>
+            <div class="stat-bar">
+                <label>Mood</label>
+                <div class="bar-container"><div class="bar-fill mood" id="bar-mood" style="width:50%"></div></div>
+            </div>
         </div>
-        <span style="font-size:13px;font-weight:600;color:var(--text2);">On</span>
-      </div>
-      <div class="timer-row" id="timerSetup" style="display:none;">
-        <input type="number" class="timer-input" id="timerH" value="0" min="0" max="5" placeholder="H">
-        <span class="timer-sep">:</span>
-        <input type="number" class="timer-input" id="timerM" value="30" min="0" max="59" placeholder="M">
-      </div>
+        <div class="hud-panel">
+            <div id="coins-display">💰 500 Gold</div>
+            <div style="color:#b89a7a; font-size:0.85em; margin-top:5px;" id="day-display">Day 1</div>
+        </div>
     </div>
 
-    <!-- START -->
-    <div style="text-align:center;margin-top:20px;animation:bounceIn 0.6s 0.3s both;">
-      <button class="glow-btn" onclick="startTest()" style="width:100%;padding:16px;font-size:16px;">
-        🚀 Start Test
-      </button>
+    <!-- Session Timer -->
+    <div id="session-timer">⏱ 5:00</div>
+
+    <!-- Therapist Selection -->
+    <div id="therapist-select">
+        <h2>Choose Your Therapist</h2>
+        <div class="therapist-grid" id="therapist-grid"></div>
+        <button class="btn" onclick="goToLobby()" style="margin-top:30px; font-size:0.9em;">Back to Lobby</button>
     </div>
-  </div>
-</div>
 
-<!-- ============ OMR PAGE ============ -->
-<div class="page" id="omrPage">
-  <div class="app-header" id="omrHeader">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <span style="cursor:pointer;font-size:20px;" onclick="confirmExit()">←</span>
-      <div>
-        <div style="font-weight:900;font-size:14px;" id="omrTestName">Test</div>
-        <div style="font-size:11px;color:var(--text2);font-weight:600;" id="omrQInfo"></div>
-      </div>
+    <!-- Dialogue Box -->
+    <div id="dialogue-box">
+        <div id="speaker-name"></div>
+        <div id="dialogue-text"></div>
+        <div id="dialogue-choices"></div>
     </div>
-    <div class="timer-display" id="timerEl" style="display:none;">00:00</div>
-  </div>
 
-  <!-- SUBMIT BAR AT TOP -->
-  <div class="submit-bar" id="submitBar">
-    <button class="submit-btn" onclick="confirmSubmit()">✓ Submit</button>
-    <div class="bubble-size-bar">
-      <label>Size</label>
-      <input type="range" min="30" max="60" value="42" id="omrBubbleSizeRange" oninput="liveUpdateBubbleSize(this.value)">
+    <!-- Massage Actions -->
+    <div id="massage-ui">
+        <div style="color:#b89a7a; text-align:center; margin-bottom:5px; font-size:0.85em;">Techniques</div>
+        <button class="massage-btn" onclick="doMassage('swedish')">🖐 Swedish</button>
+        <button class="massage-btn" onclick="doMassage('deep')">💪 Deep Tissue</button>
+        <button class="massage-btn" onclick="doMassage('hot')">🔥 Hot Stone</button>
+        <button class="massage-btn" onclick="doMassage('aroma')">🌸 Aromatherapy</button>
+        <button class="massage-btn" onclick="doMassage('shiatsu')">🤲 Shiatsu</button>
+        <button class="massage-btn" onclick="talkDuring()">💬 Talk</button>
     </div>
-  </div>
 
-  <div class="omr-container">
-    <div class="omr-main" id="omrMain" style="padding-top:104px;"></div>
-    <div class="q-nav" id="qNav"></div>
-  </div>
-</div>
-
-<!-- ============ CHECK PAGE ============ -->
-<div class="page" id="checkPage">
-  <div class="app-header">
-    <div class="app-title">Answer Check</div>
-    <div style="font-size:13px;font-weight:700;color:var(--text2);" id="checkCounter"></div>
-  </div>
-  <div class="check-progress-bar"><div class="check-progress-fill" id="checkProgressFill" style="width:0%;"></div></div>
-  <div class="check-area" id="checkArea">
-    <!-- Corner labels -->
-    <div class="corner-label" id="cl1" style="top:80px;left:20px;background:rgba(91,141,239,0.12);color:var(--accent);border:1px solid rgba(91,141,239,0.2);">1</div>
-    <div class="corner-label" id="cl2" style="top:80px;right:20px;background:rgba(232,168,56,0.12);color:var(--amber);border:1px solid rgba(232,168,56,0.2);">2</div>
-    <div class="corner-label" id="cl3" style="bottom:80px;left:20px;background:rgba(76,175,130,0.12);color:var(--green);border:1px solid rgba(76,175,130,0.2);">3</div>
-    <div class="corner-label" id="cl4" style="bottom:80px;right:20px;background:rgba(224,107,122,0.12);color:var(--red);border:1px solid rgba(224,107,122,0.2);">4</div>
-    <!-- Glow trail -->
-    <div class="glow-trail" id="glowTrail"></div>
-    <div class="check-progress-text" id="checkProgressText"></div>
-  </div>
-</div>
-
-<!-- ============ RESULT PAGE ============ -->
-<div class="page" id="resultPage">
-  <div class="app-header">
-    <div class="app-title">Results</div>
-    <div style="display:flex;gap:8px;">
-      <button class="modal-btn" onclick="tryAgain()" style="font-size:12px;padding:6px 12px;">🔄 Retry</button>
-      <button class="modal-btn" onclick="goHome()" style="font-size:12px;padding:6px 12px;">🏠 Home</button>
+    <!-- Lobby Navigation -->
+    <div id="lobby-nav">
+        <button class="lobby-btn" onclick="showTherapistSelect()">🧖‍♀️ Book Session</button>
+        <button class="lobby-btn" onclick="visitShop()">🛍 Gift Shop</button>
+        <button class="lobby-btn" onclick="viewJournal()">📖 Journal</button>
+        <button class="lobby-btn" onclick="rest()">🌙 Rest</button>
     </div>
-  </div>
-  <div style="padding:16px;max-width:420px;margin:0 auto;padding-bottom:60px;" id="resultContent"></div>
+
+    <button id="back-btn" onclick="goToLobby()">← Back</button>
+
+    <div id="story-progress"></div>
 </div>
 
-<!-- ============ HISTORY PAGE ============ -->
-<div class="page" id="historyPage">
-  <div class="app-header">
-    <span style="cursor:pointer;font-size:20px;" onclick="showPage('homePage')">←</span>
-    <div class="app-title">History</div>
-    <div></div>
-  </div>
-  <div style="padding:16px;max-width:420px;margin:0 auto;" id="historyContent"></div>
-</div>
-
-<!-- ============ HISTORY DETAIL ============ -->
-<div class="page" id="historyDetailPage">
-  <div class="app-header">
-    <span style="cursor:pointer;font-size:20px;" onclick="showPage('historyPage');renderHistory();">←</span>
-    <div class="app-title">Exam Detail</div>
-    <div></div>
-  </div>
-  <div style="padding:16px;max-width:420px;margin:0 auto;padding-bottom:60px;" id="historyDetailContent"></div>
-</div>
-
-<!-- MODAL CONTAINER -->
-<div id="modalContainer"></div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// ============ STATE ============
-let questionCount = 30;
-let bubbleSize = 42;
-let timerEnabled = false;
-let timerSeconds = 0;
-let timerInterval = null;
-let startTime = 0;
-let userAnswers = {};
-let answerKeys = {};
-let testName = '';
-let attemptedForCheck = [];
-let checkIndex = 0;
-let currentCard = null;
-let currentCleanup = null;
+// ==========================================
+// GAME ENGINE
+// ==========================================
 
-// ============ HELPERS ============
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => {
-    p.classList.remove('active');
-    p.style.display = 'none';
-    p.style.opacity = '0';
-    p.style.transform = 'translateY(20px)';
-  });
-  const pg = document.getElementById(id);
-  pg.style.display = 'block';
-  void pg.offsetWidth;
-  pg.classList.add('active');
-}
-
-function toast(msg) {
-  const t = document.createElement('div');
-  t.className = 'toast';
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2500);
-}
-
-function showModal(title, text, onConfirm, onCancel) {
-  const c = document.getElementById('modalContainer');
-  c.innerHTML = `
-    <div class="modal-overlay" onclick="event.target===this&&closeModal()">
-      <div class="modal-box glass-strong">
-        <h3>${title}</h3>
-        <p>${text}</p>
-        <div class="modal-btns">
-          <button class="modal-btn" onclick="closeModal();${onCancel||''}">Cancel</button>
-          <button class="modal-btn confirm" onclick="closeModal();${onConfirm}">Confirm</button>
-        </div>
-      </div>
-    </div>`;
-}
-function closeModal() { document.getElementById('modalContainer').innerHTML=''; }
-
-function formatTime(s) {
-  const h = Math.floor(s/3600);
-  const m = Math.floor((s%3600)/60);
-  const sec = s%60;
-  if (h>0) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-}
-
-// ============ THEME ============
-function toggleTheme() {
-  document.body.classList.toggle('light-mode');
-  const isLight = document.body.classList.contains('light-mode');
-  document.getElementById('themeIcon').textContent = isLight ? '☀️' : '🌙';
-  document.getElementById('themeLabel').textContent = isLight ? 'Light' : 'Dark';
-  localStorage.setItem('omr-theme', isLight ? 'light' : 'dark');
-}
-(function(){
-  if (localStorage.getItem('omr-theme') === 'light') {
-    document.body.classList.add('light-mode');
-    document.getElementById('themeIcon').textContent = '☀️';
-    document.getElementById('themeLabel').textContent = 'Light';
-  }
-})();
-
-// ============ SETUP ============
-function changeQ(d) {
-  questionCount = Math.max(1, Math.min(200, questionCount + d));
-  document.getElementById('qCount').textContent = questionCount;
-}
-function updateBubbleSize(v) {
-  bubbleSize = parseInt(v);
-  document.getElementById('bubbleSizeVal') && (document.getElementById('bubbleSizeVal').textContent = v);
-}
-function liveUpdateBubbleSize(v) {
-  bubbleSize = parseInt(v);
-  document.documentElement.style.setProperty('--bubble-size', v + 'px');
-}
-function toggleTimer() {
-  timerEnabled = !timerEnabled;
-  document.getElementById('timerToggle').classList.toggle('on', timerEnabled);
-  document.getElementById('timerSetup').style.display = timerEnabled ? 'flex' : 'none';
-}
-
-// ============ START TEST ============
-function startTest() {
-  testName = document.getElementById('testNameInput').value.trim() || ('Test ' + new Date().toLocaleDateString());
-  userAnswers = {};
-  answerKeys = {};
-
-  if (timerEnabled) {
-    const h = parseInt(document.getElementById('timerH').value) || 0;
-    const m = parseInt(document.getElementById('timerM').value) || 0;
-    timerSeconds = h * 3600 + m * 60;
-    if (timerSeconds <= 0) { toast('Set a valid time'); return; }
-  }
-
-  startTime = Date.now();
-  buildOMR();
-  showPage('omrPage');
-  document.getElementById('omrTestName').textContent = testName;
-  document.getElementById('omrQInfo').textContent = questionCount + ' Questions';
-  document.getElementById('omrBubbleSizeRange').value = bubbleSize;
-
-  if (timerEnabled) {
-    document.getElementById('timerEl').style.display = 'block';
-    updateTimerDisplay();
-    timerInterval = setInterval(() => {
-      timerSeconds--;
-      updateTimerDisplay();
-      if (timerSeconds <= 0) {
-        clearInterval(timerInterval);
-        toast('⏰ Time is up!');
-        setTimeout(submitOMR, 1000);
-      }
-    }, 1000);
-  } else {
-    document.getElementById('timerEl').style.display = 'none';
-  }
-}
-
-function updateTimerDisplay() {
-  const el = document.getElementById('timerEl');
-  el.textContent = formatTime(timerSeconds);
-  el.classList.toggle('urgent', timerSeconds <= 60);
-}
-
-// ============ BUILD OMR ============
-function buildOMR() {
-  const main = document.getElementById('omrMain');
-  const nav = document.getElementById('qNav');
-  main.innerHTML = '';
-  nav.innerHTML = '<div style="text-align:center;padding:6px 0;font-size:10px;font-weight:900;color:var(--text2);letter-spacing:1px;">NAV</div>';
-
-  document.documentElement.style.setProperty('--bubble-size', bubbleSize + 'px');
-
-  for (let i = 1; i <= questionCount; i++) {
-    const row = document.createElement('div');
-    row.className = 'q-row';
-    row.id = 'qrow-' + i;
-    row.style.animation = `slideUp 0.4s ${Math.min(i*0.02, 1)}s both`;
-    row.innerHTML = `
-      <div class="q-num">${i}.</div>
-      <div class="q-bubbles">
-        ${[1,2,3,4].map(o => `<div class="bubble" data-q="${i}" data-o="${o}" onclick="selectBubble(${i},${o})">${o}</div>`).join('')}
-      </div>`;
-    main.appendChild(row);
-
-    const ni = document.createElement('div');
-    ni.className = 'q-nav-item';
-    ni.id = 'nav-' + i;
-    ni.innerHTML = `<span>${i}</span><span class="nav-opt" id="navopt-${i}"></span>`;
-    ni.onclick = () => {
-      document.getElementById('qrow-' + i).scrollIntoView({ behavior:'smooth', block:'center' });
-    };
-    nav.appendChild(ni);
-  }
-}
-
-// ============ BUBBLE SELECT ============
-function selectBubble(q, o) {
-  const current = userAnswers[q];
-
-  if (current === o) {
-    showModal('Deselect Answer', `Remove answer for Q${q}?`, `doDeselect(${q})`);
-    return;
-  }
-
-  if (current !== undefined && current !== o) {
-    showModal('Change Answer', `Change Q${q} from ${current} to ${o}?`, `doSelect(${q},${o})`);
-    return;
-  }
-
-  doSelect(q, o);
-}
-
-function doSelect(q, o) {
-  userAnswers[q] = o;
-  updateBubbleUI(q);
-  updateNavItem(q);
-  // Auto-scroll to next question
-  const nextRow = document.getElementById('qrow-' + (q + 1));
-  if (nextRow) {
-    setTimeout(() => {
-      nextRow.scrollIntoView({ behavior:'smooth', block:'center' });
-    }, 150);
-  }
-}
-
-function doDeselect(q) {
-  delete userAnswers[q];
-  updateBubbleUI(q);
-  updateNavItem(q);
-}
-
-function updateBubbleUI(q) {
-  const bubbles = document.querySelectorAll(`.bubble[data-q="${q}"]`);
-  bubbles.forEach(b => {
-    const o = parseInt(b.dataset.o);
-    b.classList.toggle('filled', userAnswers[q] === o);
-  });
-}
-
-function updateNavItem(q) {
-  const ni = document.getElementById('nav-' + q);
-  const opt = document.getElementById('navopt-' + q);
-  if (userAnswers[q] !== undefined) {
-    ni.classList.add('answered');
-    opt.textContent = '→' + userAnswers[q];
-  } else {
-    ni.classList.remove('answered');
-    opt.textContent = '';
-  }
-}
-
-// ============ SUBMIT ============
-function confirmSubmit() {
-  const attempted = Object.keys(userAnswers).length;
-  showModal(
-    'Submit Test',
-    `You have attempted ${attempted} of ${questionCount} questions. Are you sure you want to submit?`,
-    'submitOMR()'
-  );
-}
-
-function submitOMR() {
-  if (timerInterval) clearInterval(timerInterval);
-
-  attemptedForCheck = [];
-  for (let i = 1; i <= questionCount; i++) {
-    if (userAnswers[i] !== undefined) {
-      attemptedForCheck.push(i);
-    }
-  }
-
-  if (attemptedForCheck.length === 0) {
-    toast('No questions attempted');
-    showResults();
-    return;
-  }
-
-  checkIndex = 0;
-  showPage('checkPage');
-  showCheckCard();
-}
-
-function confirmExit() {
-  showModal('Exit Test', 'Your progress will be lost. Are you sure?', 'exitTest()');
-}
-function exitTest() {
-  if (timerInterval) clearInterval(timerInterval);
-  goHome();
-}
-function goHome() { showPage('homePage'); }
-
-// ============ CHECK SYSTEM ============
-const checkColors = {
-  1: { color: '#5B8DEF', label: 'cl1' },  // top-left → blue
-  2: { color: '#E8A838', label: 'cl2' },  // top-right → amber
-  3: { color: '#4CAF82', label: 'cl3' },  // bottom-left → green
-  4: { color: '#E06B7A', label: 'cl4' },  // bottom-right → rose
+let scene, camera, renderer, clock;
+let gameState = {
+    phase: 'title', // title, lobby, selecting, session, dialogue
+    day: 1,
+    coins: 500,
+    stats: {
+        relaxation: 20,
+        satisfaction: 0,
+        energy: 100,
+        mood: 50
+    },
+    currentTherapist: null,
+    relationships: {},
+    storyProgress: {},
+    unlockedStories: [],
+    sessionTime: 300,
+    currentChapter: 1,
+    journalEntries: [],
+    giftsGiven: {}
 };
 
-function showCheckCard() {
-  // Clean up previous listeners
-  if (currentCleanup) {
-    currentCleanup();
-    currentCleanup = null;
-  }
+// Therapist Data
+const therapists = [
+    {
+        id: 'sakura',
+        name: 'Sakura',
+        specialty: 'Traditional Japanese Shiatsu',
+        desc: 'A gentle soul from Kyoto who believes massage heals both body and spirit. She carries the wisdom of ancient techniques.',
+        color: 0xff9eb8,
+        skinColor: 0xfdd5b1,
+        hairColor: 0x1a1a2e,
+        price: 100,
+        emoji: '🌸',
+        personality: 'gentle',
+        stories: {
+            intro: [
+                { speaker: 'Sakura', text: 'Welcome to our spa. I am Sakura. *bows gracefully* I sense much tension in you...', choices: [
+                    { text: 'Thank you, Sakura. I\'ve heard wonderful things about you.', mood: 10, next: 1 },
+                    { text: 'I\'ve been really stressed lately. Can you help?', mood: 5, next: 2 }
+                ]},
+                { speaker: 'Sakura', text: '*smiles warmly* You are too kind. In my homeland, we say "The body speaks what the heart cannot." Let me listen to yours.', choices: [
+                    { text: 'That\'s beautiful. Please, I\'m ready.', next: 'start_session' }
+                ]},
+                { speaker: 'Sakura', text: 'Of course. Stress is like a river blocked by stones. Together, we shall remove them one by one. Please, lie down and breathe deeply.', choices: [
+                    { text: 'That sounds wonderful. Let\'s begin.', next: 'start_session' }
+                ]}
+            ],
+            session_talk: [
+                { speaker: 'Sakura', text: 'You carry your stress in your shoulders... Tell me, what weighs so heavily on your mind?', choices: [
+                    { text: 'Work has been overwhelming lately.', mood: 5, next: 1 },
+                    { text: 'I just needed some peace and quiet.', mood: 8, next: 2 }
+                ]},
+                { speaker: 'Sakura', text: 'Ah, the modern world asks so much of us. But remember - even the busiest cherry blossom tree finds time to bloom. *applies warm pressure to your back*', choices: [
+                    { text: 'You\'re very wise, Sakura.', relationship: 5, next: 'resume' }
+                ]},
+                { speaker: 'Sakura', text: '*nods approvingly* Then you have already taken the first step to healing. The fact that you are here... that takes courage. *gentle strokes along your spine*', choices: [
+                    { text: '*Close your eyes and relax*', relationship: 3, next: 'resume' }
+                ]}
+            ],
+            deep: [
+                { speaker: 'Sakura', text: '*pauses her work* Can I tell you something? When I first came here from Japan, I was very lonely. This spa... it became my home.', choices: [
+                    { text: 'I\'m glad you found your place here.', relationship: 10, next: 1 },
+                    { text: 'Do you miss home?', relationship: 8, next: 2 }
+                ]},
+                { speaker: 'Sakura', text: '*blushes slightly* And now, with clients like you who truly appreciate the art... it makes every day worthwhile. You have a gentle spirit.', choices: [
+                    { text: 'You bring out the best in people, Sakura.', relationship: 15, next: 'end' }
+                ]},
+                { speaker: 'Sakura', text: 'Every day. I miss the cherry blossoms in spring, the temple bells... But I carry them in my heart. *her hands work a deep knot* And I share their peace through my work.', choices: [
+                    { text: 'I can feel that peace through your touch.', relationship: 12, next: 'end' }
+                ]}
+            ]
+        }
+    },
+    {
+        id: 'elena',
+        name: 'Elena',
+        specialty: 'Swedish & Deep Tissue Expert',
+        desc: 'A confident professional from Stockholm with strong hands and a warm heart. Known for her incredible deep tissue technique.',
+        color: 0x7bc8ff,
+        skinColor: 0xfce4d6,
+        hairColor: 0xe8c170,
+        price: 120,
+        emoji: '❄️',
+        personality: 'confident',
+        stories: {
+            intro: [
+                { speaker: 'Elena', text: 'Hey there! I\'m Elena. *extends hand for a firm handshake* Ready to let me work my magic? I promise you\'ll feel like a new person.', choices: [
+                    { text: 'I like your confidence! Let\'s do this.', mood: 10, next: 1 },
+                    { text: 'I\'ve never had a professional massage before...', mood: 5, next: 2 }
+                ]},
+                { speaker: 'Elena', text: '*grins* That\'s the spirit! I was a physiotherapist back in Stockholm. Trust me, these hands know what they\'re doing. Hop on the table!', choices: [
+                    { text: 'I\'m in good hands then!', next: 'start_session' }
+                ]},
+                { speaker: 'Elena', text: '*softens her voice* Don\'t worry! Everyone starts somewhere. I\'ll be gentle - well, mostly gentle. *winks* I\'ll talk you through everything. You\'re safe with me.', choices: [
+                    { text: 'Thank you, Elena. That makes me feel better.', next: 'start_session' }
+                ]}
+            ],
+            session_talk: [
+                { speaker: 'Elena', text: '*pressing firmly on a knot* Wow, you\'re really tight here. What do you do for a living? Because your muscles are staging a protest.', choices: [
+                    { text: '*laugh* I sit at a desk all day.', mood: 5, next: 1 },
+                    { text: 'I try to exercise but never stretch properly.', mood: 3, next: 2 }
+                ]},
+                { speaker: 'Elena', text: '*laughs* Classic! I call this "desk warrior syndrome." Don\'t worry, I\'ll have you loosened up. Back in Sweden, we have a saying: "A stiff body makes a stiff mind."', choices: [
+                    { text: 'I can already feel the difference.', relationship: 5, next: 'resume' }
+                ]},
+                { speaker: 'Elena', text: 'Stretching is the most underrated thing! *works along your shoulders* Tell you what - come back next time and I\'ll show you some amazing stretches. Consider it a bonus.', choices: [
+                    { text: 'I\'d love that, Elena!', relationship: 8, next: 'resume' }
+                ]}
+            ],
+            deep: [
+                { speaker: 'Elena', text: '*stops and sits beside you* You know... I don\'t usually open up to clients. But you\'re different. You actually listen.', choices: [
+                    { text: 'I enjoy our conversations, Elena.', relationship: 10, next: 1 },
+                    { text: 'You can tell me anything.', relationship: 12, next: 2 }
+                ]},
+                { speaker: 'Elena', text: '*runs fingers through her blonde hair* I left Sweden because... I needed to find myself. My family wanted me to be a doctor. But healing people with my hands, one person at a time... this is who I am.', choices: [
+                    { text: 'You\'re amazing at what you do. Never doubt that.', relationship: 15, next: 'end' }
+                ]},
+                { speaker: 'Elena', text: '*takes a deep breath* I was engaged once. He didn\'t understand why I chose this over medicine. But touch... real, healing touch... it\'s an art. And you appreciate that.', choices: [
+                    { text: 'His loss. You\'re extraordinary, Elena.', relationship: 18, next: 'end' }
+                ]}
+            ]
+        }
+    },
+    {
+        id: 'maya',
+        name: 'Maya',
+        specialty: 'Aromatherapy & Hot Stone',
+        desc: 'A free-spirited healer from Bali who combines essential oils with ancient volcanic stone techniques. Her presence alone is calming.',
+        color: 0x50c878,
+        skinColor: 0xc68642,
+        hairColor: 0x0d0d0d,
+        price: 150,
+        emoji: '🌿',
+        personality: 'mystical',
+        stories: {
+            intro: [
+                { speaker: 'Maya', text: '*places hands together in prayer* Namaste. I am Maya. The universe has guided you here today... I can see your aura needs healing.', choices: [
+                    { text: 'I believe in energy healing. Please help me.', mood: 12, next: 1 },
+                    { text: 'I\'m not sure about auras, but I need relaxation.', mood: 5, next: 2 }
+                ]},
+                { speaker: 'Maya', text: '*lights incense and smiles* Beautiful. Close your eyes... *waves essential oils* Breathe in the lavender and sandalwood. Feel the tension dissolving like morning mist...', choices: [
+                    { text: '*Inhale deeply and surrender to the experience*', next: 'start_session' }
+                ]},
+                { speaker: 'Maya', text: '*laughs gently* The mind questions what the body already knows. You don\'t need to believe - just feel. *places a warm stone on your back* Tell me... does that feel like nothing?', choices: [
+                    { text: 'That feels... incredible actually.', next: 'start_session' }
+                ]}
+            ],
+            session_talk: [
+                { speaker: 'Maya', text: '*arranging hot stones along your spine* Each stone carries the energy of the earth. This one... *places it carefully* ...is for your heart chakra. I sense it has been closed.', choices: [
+                    { text: 'Maybe you\'re right. I have been guarded lately.', mood: 8, next: 1 },
+                    { text: 'Tell me more about chakras, Maya.', mood: 5, next: 2 }
+                ]},
+                { speaker: 'Maya', text: '*applies essential oil with slow, circular motions* Opening yourself to healing is the bravest thing one can do. The body remembers what the mind tries to forget. Let it release...', choices: [
+                    { text: '*Feel a wave of emotion and relaxation*', relationship: 8, next: 'resume' }
+                ]},
+                { speaker: 'Maya', text: '*her eyes light up* There are seven main chakras. Right now, I\'m working on your Manipura - your solar plexus. It controls confidence and personal power. *deep massage* You deserve to feel powerful.', choices: [
+                    { text: 'Your knowledge is incredible, Maya.', relationship: 6, next: 'resume' }
+                ]}
+            ],
+            deep: [
+                { speaker: 'Maya', text: '*the room fills with soft music* I want to share something sacred with you. In Bali, I was trained by my grandmother - a Balian, a traditional healer.', choices: [
+                    { text: 'That\'s a beautiful heritage.', relationship: 10, next: 1 },
+                    { text: 'Is that why your touch feels so different?', relationship: 12, next: 2 }
+                ]},
+                { speaker: 'Maya', text: '*her voice becomes soft* She told me: "Maya, your hands are bridges between worlds. Through them, you connect people to their true selves." When I touch you... I feel that connection.', choices: [
+                    { text: 'I feel it too, Maya. There\'s something special here.', relationship: 18, next: 'end' }
+                ]},
+                { speaker: 'Maya', text: '*places her hand over yours* She said I would know when I found a kindred spirit. Someone whose energy harmonizes with mine. *looks into your eyes* I believe I have found that person.', choices: [
+                    { text: '*Hold her gaze* I think I feel the same way.', relationship: 20, next: 'end' }
+                ]}
+            ]
+        }
+    }
+];
 
-  if (checkIndex >= attemptedForCheck.length) {
-    showResults();
-    return;
-  }
+// Three.js Setup
+function initThreeJS() {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.8;
+    clock = new THREE.Clock();
 
-  const qNum = attemptedForCheck[checkIndex];
-  const total = attemptedForCheck.length;
-  document.getElementById('checkCounter').textContent = `${checkIndex+1} / ${total}`;
-  document.getElementById('checkProgressText').textContent = `Swipe to corners • Q${checkIndex+1} of ${total}`;
-  document.getElementById('checkProgressFill').style.width = ((checkIndex / total) * 100) + '%';
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+}
 
-  // Reset corners
-  ['cl1','cl2','cl3','cl4'].forEach(id => {
-    const el = document.getElementById(id);
-    el.classList.remove('active');
-    el.style.boxShadow = '';
-    el.style.background = '';
-    // Reset background
-    if (id === 'cl1') el.style.background = 'rgba(91,141,239,0.12)';
-    if (id === 'cl2') el.style.background = 'rgba(232,168,56,0.12)';
-    if (id === 'cl3') el.style.background = 'rgba(76,175,130,0.12)';
-    if (id === 'cl4') el.style.background = 'rgba(224,107,122,0.12)';
-  });
+// ==========================================
+// SCENE BUILDERS
+// ==========================================
 
-  // Remove old card
-  if (currentCard) {
-    currentCard.remove();
-    currentCard = null;
-  }
+let currentScene = null;
+let animatedObjects = [];
+let particleSystems = [];
 
-  // Create card
-  const card = document.createElement('div');
-  card.className = 'check-card glass-strong';
-  card.innerHTML = `
-    <div class="q-label">Question</div>
-    <div class="q-number">${qNum}</div>`;
-  card.style.animation = 'popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both';
+function clearScene() {
+    while(scene.children.length > 0) {
+        const obj = scene.children[0];
+        scene.remove(obj);
+        if(obj.geometry) obj.geometry.dispose();
+        if(obj.material) {
+            if(Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+            else obj.material.dispose();
+        }
+    }
+    animatedObjects = [];
+    particleSystems = [];
+}
 
-  const area = document.getElementById('checkArea');
-  area.insertBefore(card, document.getElementById('checkProgressText'));
-  currentCard = card;
+function buildLobbyScene() {
+    clearScene();
+    currentScene = 'lobby';
 
-  // Drag state
-  let isDragging = false;
-  let sx = 0, sy = 0;
-  let dx = 0, dy = 0;
-  const sensitivity = 1.5;
-  const threshold = 40;
-  const trail = document.getElementById('glowTrail');
+    // Ambient light
+    const ambient = new THREE.AmbientLight(0xffd5a0, 0.4);
+    scene.add(ambient);
 
-  function getActiveCorner(x, y) {
-    const ax = Math.abs(x), ay = Math.abs(y);
-    if (ax < threshold && ay < threshold) return 0;
-    if (x < 0 && y < 0) return 1;
-    if (x > 0 && y < 0) return 2;
-    if (x < 0 && y > 0) return 3;
-    if (x > 0 && y > 0) return 4;
-    return 0;
-  }
+    // Warm point lights
+    const light1 = new THREE.PointLight(0xffa040, 1.5, 20);
+    light1.position.set(-3, 4, 2);
+    light1.castShadow = true;
+    scene.add(light1);
 
-  function onStart(e) {
-    e.preventDefault();
-    isDragging = true;
-    const t = e.touches ? e.touches[0] : e;
-    sx = t.clientX;
-    sy = t.clientY;
-    card.style.transition = 'none';
-    card.style.animation = 'none';
-    trail.style.transition = 'none';
-  }
+    const light2 = new THREE.PointLight(0xff8060, 1, 15);
+    light2.position.set(3, 3, -1);
+    scene.add(light2);
 
-  function onMove(e) {
-    if (!isDragging) return;
-    e.preventDefault();
-    const t = e.touches ? e.touches[0] : e;
-    dx = (t.clientX - sx) * sensitivity;
-    dy = (t.clientY - sy) * sensitivity;
+    const light3 = new THREE.PointLight(0xffc880, 0.8, 12);
+    light3.position.set(0, 2, 5);
+    scene.add(light3);
 
-    const rot = dx * 0.06;
-    card.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+    // Floor
+    const floorGeo = new THREE.PlaneGeometry(20, 20);
+    const floorMat = new THREE.MeshStandardMaterial({
+        color: 0x2a1a0e,
+        roughness: 0.8,
+        metalness: 0.1
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
 
-    const corner = getActiveCorner(dx, dy);
+    // Walls
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x3d2b1f, roughness: 0.9 });
+    
+    // Back wall
+    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 8), wallMat);
+    backWall.position.set(0, 4, -5);
+    scene.add(backWall);
 
-    // Update corners
-    [1,2,3,4].forEach(c => {
-      const el = document.getElementById(checkColors[c].label);
-      if (c === corner) {
-        el.classList.add('active');
-        el.style.boxShadow = `0 0 24px ${checkColors[c].color}60`;
-        el.style.background = checkColors[c].color + '30';
-      } else {
-        el.classList.remove('active');
-        el.style.boxShadow = '';
-        if (c === 1) el.style.background = 'rgba(91,141,239,0.12)';
-        if (c === 2) el.style.background = 'rgba(232,168,56,0.12)';
-        if (c === 3) el.style.background = 'rgba(76,175,130,0.12)';
-        if (c === 4) el.style.background = 'rgba(224,107,122,0.12)';
-      }
+    // Side walls
+    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(12, 8), wallMat);
+    leftWall.position.set(-6, 4, 0);
+    leftWall.rotation.y = Math.PI / 2;
+    scene.add(leftWall);
+
+    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(12, 8), wallMat);
+    rightWall.position.set(6, 4, 0);
+    rightWall.rotation.y = -Math.PI / 2;
+    scene.add(rightWall);
+
+    // Reception desk
+    const deskGeo = new THREE.BoxGeometry(3, 1.2, 1);
+    const deskMat = new THREE.MeshStandardMaterial({ color: 0x4a3520, roughness: 0.6 });
+    const desk = new THREE.Mesh(deskGeo, deskMat);
+    desk.position.set(0, 0.6, -3);
+    desk.castShadow = true;
+    scene.add(desk);
+
+    // Desk top
+    const deskTop = new THREE.Mesh(
+        new THREE.BoxGeometry(3.2, 0.08, 1.2),
+        new THREE.MeshStandardMaterial({ color: 0x5d4430, roughness: 0.4 })
+    );
+    deskTop.position.set(0, 1.22, -3);
+    scene.add(deskTop);
+
+    // Vase on desk
+    const vaseGeo = new THREE.CylinderGeometry(0.08, 0.12, 0.4, 8);
+    const vaseMat = new THREE.MeshStandardMaterial({ color: 0x8b4513, roughness: 0.3 });
+    const vase = new THREE.Mesh(vaseGeo, vaseMat);
+    vase.position.set(0.8, 1.45, -3);
+    scene.add(vase);
+
+    // Flowers
+    for(let i = 0; i < 5; i++) {
+        const flowerGeo = new THREE.SphereGeometry(0.06, 6, 6);
+        const flowerMat = new THREE.MeshStandardMaterial({
+            color: [0xff69b4, 0xff1493, 0xffa07a, 0xffb6c1, 0xff6347][i],
+            emissive: [0xff69b4, 0xff1493, 0xffa07a, 0xffb6c1, 0xff6347][i],
+            emissiveIntensity: 0.2
+        });
+        const flower = new THREE.Mesh(flowerGeo, flowerMat);
+        flower.position.set(
+            0.8 + Math.cos(i * 1.2) * 0.1,
+            1.7 + Math.sin(i * 0.8) * 0.05,
+            -3 + Math.sin(i * 1.2) * 0.1
+        );
+        scene.add(flower);
+        animatedObjects.push({
+            mesh: flower,
+            type: 'bob',
+            speed: 1 + Math.random(),
+            offset: i * 0.5,
+            amplitude: 0.03
+        });
+    }
+
+    // Candles
+    for(let i = 0; i < 4; i++) {
+        const candleGroup = new THREE.Group();
+        const candleBody = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.04, 0.04, 0.25, 8),
+            new THREE.MeshStandardMaterial({ color: 0xfff8dc })
+        );
+        candleBody.position.y = 0.125;
+        candleGroup.add(candleBody);
+
+        const flame = new THREE.Mesh(
+            new THREE.SphereGeometry(0.03, 8, 8),
+            new THREE.MeshStandardMaterial({
+                color: 0xffa500,
+                emissive: 0xff8c00,
+                emissiveIntensity: 2
+            })
+        );
+        flame.position.y = 0.28;
+        flame.scale.y = 1.5;
+        candleGroup.add(flame);
+
+        const flameLight = new THREE.PointLight(0xff8c00, 0.3, 3);
+        flameLight.position.y = 0.3;
+        candleGroup.add(flameLight);
+
+        const positions = [
+            [-2, 1.25, -3], [2, 1.25, -3],
+            [-4, 0, -2], [4, 0, -2]
+        ];
+        candleGroup.position.set(...positions[i]);
+        scene.add(candleGroup);
+
+        animatedObjects.push({
+            mesh: flame,
+            light: flameLight,
+            type: 'flicker',
+            speed: 3 + Math.random() * 2,
+            offset: i
+        });
+    }
+
+    // Sofas/benches
+    for(let side = -1; side <= 1; side += 2) {
+        const sofaBase = new THREE.Mesh(
+            new THREE.BoxGeometry(1.5, 0.5, 0.8),
+            new THREE.MeshStandardMaterial({ color: 0x6b3a2a, roughness: 0.7 })
+        );
+        sofaBase.position.set(side * 3.5, 0.25, 1);
+        sofaBase.castShadow = true;
+        scene.add(sofaBase);
+
+        const sofaBack = new THREE.Mesh(
+            new THREE.BoxGeometry(1.5, 0.8, 0.15),
+            new THREE.MeshStandardMaterial({ color: 0x6b3a2a, roughness: 0.7 })
+        );
+        sofaBack.position.set(side * 3.5, 0.65, 0.6);
+        scene.add(sofaBack);
+
+        // Cushion
+        const cushion = new THREE.Mesh(
+            new THREE.BoxGeometry(1.3, 0.12, 0.6),
+            new THREE.MeshStandardMaterial({ color: 0x8b0000, roughness: 0.9 })
+        );
+        cushion.position.set(side * 3.5, 0.52, 1);
+        scene.add(cushion);
+    }
+
+    // Plants
+    for(let i = 0; i < 3; i++) {
+        const potGeo = new THREE.CylinderGeometry(0.2, 0.15, 0.3, 8);
+        const potMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+        const pot = new THREE.Mesh(potGeo, potMat);
+        const plantPositions = [[-5, 0.15, -4], [5, 0.15, -4], [0, 0.15, 4]];
+        pot.position.set(...plantPositions[i]);
+        scene.add(pot);
+
+        // Plant leaves
+        for(let j = 0; j < 6; j++) {
+            const leaf = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.3, 0.5),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0x228b22, 
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.9
+                })
+            );
+            leaf.position.set(
+                plantPositions[i][0] + Math.cos(j * 1.05) * 0.15,
+                0.5 + j * 0.08,
+                plantPositions[i][2] + Math.sin(j * 1.05) * 0.15
+            );
+            leaf.rotation.y = j * 0.5;
+            leaf.rotation.z = 0.3 - Math.random() * 0.6;
+            scene.add(leaf);
+            animatedObjects.push({
+                mesh: leaf,
+                type: 'sway',
+                speed: 0.5 + Math.random() * 0.5,
+                offset: j,
+                amplitude: 0.05
+            });
+        }
+    }
+
+    // Floating particles (dust/ambiance)
+    const particleGeo = new THREE.BufferGeometry();
+    const particlePositions = [];
+    for(let i = 0; i < 100; i++) {
+        particlePositions.push(
+            (Math.random() - 0.5) * 12,
+            Math.random() * 6,
+            (Math.random() - 0.5) * 10
+        );
+    }
+    particleGeo.setAttribute('position', new THREE.Float32BufferAttribute(particlePositions, 3));
+    const particleMat = new THREE.PointsMaterial({
+        color: 0xffd700,
+        size: 0.03,
+        transparent: true,
+        opacity: 0.4
+    });
+    const particles = new THREE.Points(particleGeo, particleMat);
+    scene.add(particles);
+    particleSystems.push(particles);
+
+    // Camera position for lobby
+    camera.position.set(0, 3, 6);
+    camera.lookAt(0, 1, -2);
+}
+
+function buildMassageRoom() {
+    clearScene();
+    currentScene = 'massage';
+
+    const therapist = gameState.currentTherapist;
+
+    // Ambient
+    const ambient = new THREE.AmbientLight(0xffe0c0, 0.25);
+    scene.add(ambient);
+
+    // Warm dim lights
+    const mainLight = new THREE.PointLight(therapist.color, 0.6, 15);
+    mainLight.position.set(0, 5, 0);
+    mainLight.castShadow = true;
+    scene.add(mainLight);
+
+    const sideLight1 = new THREE.PointLight(0xffa060, 0.8, 10);
+    sideLight1.position.set(-3, 2, 2);
+    scene.add(sideLight1);
+
+    const sideLight2 = new THREE.PointLight(0xffa060, 0.8, 10);
+    sideLight2.position.set(3, 2, 2);
+    scene.add(sideLight2);
+
+    // Floor
+    const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(12, 12),
+        new THREE.MeshStandardMaterial({ color: 0x1a120a, roughness: 0.9 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // Walls
+    const wallColor = 0x2d1f14;
+    const wallMat = new THREE.MeshStandardMaterial({ color: wallColor, roughness: 0.9 });
+
+    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(12, 6), wallMat);
+    backWall.position.set(0, 3, -4);
+    scene.add(backWall);
+
+    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(10, 6), wallMat);
+    leftWall.position.set(-5, 3, 0);
+    leftWall.rotation.y = Math.PI / 2;
+    scene.add(leftWall);
+
+    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(10, 6), wallMat);
+    rightWall.position.set(5, 3, 0);
+    rightWall.rotation.y = -Math.PI / 2;
+    scene.add(rightWall);
+
+    // Massage table
+    const tableGroup = new THREE.Group();
+
+    // Table top
+    const tableTop = new THREE.Mesh(
+        new THREE.BoxGeometry(2, 0.15, 4),
+        new THREE.MeshStandardMaterial({ color: 0xf5f5dc, roughness: 0.8 })
+    );
+    tableTop.position.y = 0.9;
+    tableTop.castShadow = true;
+    tableGroup.add(tableTop);
+
+    // Padding
+    const padding = new THREE.Mesh(
+        new THREE.BoxGeometry(1.8, 0.1, 3.8),
+        new THREE.MeshStandardMaterial({ color: 0xfff8f0, roughness: 0.95 })
+    );
+    padding.position.y = 1.0;
+    tableGroup.add(padding);
+
+    // Table legs
+    for(let x = -1; x <= 1; x += 2) {
+        for(let z = -1; z <= 1; z += 2) {
+            const leg = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.05, 0.05, 0.85, 8),
+                new THREE.MeshStandardMaterial({ color: 0x4a3520 })
+            );
+            leg.position.set(x * 0.8, 0.425, z * 1.7);
+            tableGroup.add(leg);
+        }
+    }
+
+    // Pillow
+    const pillow = new THREE.Mesh(
+        new THREE.BoxGeometry(0.5, 0.12, 0.4),
+        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 })
+    );
+    pillow.position.set(0, 1.08, -1.6);
+    tableGroup.add(pillow);
+
+    // Sheet/towel
+    const sheet = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.6, 2.5),
+        new THREE.MeshStandardMaterial({ 
+            color: 0xffffff, 
+            side: THREE.DoubleSide,
+            roughness: 0.95
+        })
+    );
+    sheet.position.set(0, 1.06, 0.2);
+    sheet.rotation.x = -Math.PI / 2;
+    tableGroup.add(sheet);
+
+    tableGroup.position.set(0, 0, 0);
+    scene.add(tableGroup);
+
+    // Person on table (simple figure)
+    const personGroup = new THREE.Group();
+
+    // Body
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0xfdd5b1, roughness: 0.8 });
+
+    // Torso
+    const torso = new THREE.Mesh(
+        new THREE.BoxGeometry(0.6, 0.2, 1.2),
+        bodyMat
+    );
+    torso.position.set(0, 1.15, 0);
+    personGroup.add(torso);
+
+    // Head
+    const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.15, 12, 12),
+        bodyMat
+    );
+    head.position.set(0, 1.15, -1.5);
+    personGroup.add(head);
+
+    // Arms
+    for(let side = -1; side <= 1; side += 2) {
+        const arm = new THREE.Mesh(
+            new THREE.BoxGeometry(0.12, 0.12, 0.7),
+            bodyMat
+        );
+        arm.position.set(side * 0.45, 1.1, -0.5);
+        arm.rotation.z = side * 0.3;
+        personGroup.add(arm);
+    }
+
+    // Legs
+    for(let side = -1; side <= 1; side += 2) {
+        const leg = new THREE.Mesh(
+            new THREE.BoxGeometry(0.15, 0.15, 1.0),
+            bodyMat
+        );
+        leg.position.set(side * 0.18, 1.12, 1.0);
+        personGroup.add(leg);
+    }
+
+    scene.add(personGroup);
+
+    // Therapist figure
+    const therapistGroup = new THREE.Group();
+    const therapistMat = new THREE.MeshStandardMaterial({ color: therapist.skinColor, roughness: 0.7 });
+
+    // Therapist body
+    const tBody = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.2, 0.25, 1.0, 8),
+        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 })
+    );
+    tBody.position.y = 0.8;
+    therapistGroup.add(tBody);
+
+    // Therapist head
+    const tHead = new THREE.Mesh(
+        new THREE.SphereGeometry(0.18, 12, 12),
+        therapistMat
+    );
+    tHead.position.y = 1.5;
+    therapistGroup.add(tHead);
+
+    // Hair
+    const tHair = new THREE.Mesh(
+        new THREE.SphereGeometry(0.2, 12, 12),
+        new THREE.MeshStandardMaterial({ color: therapist.hairColor })
+    );
+    tHair.position.set(0, 1.55, -0.03);
+    tHair.scale.set(1, 1.1, 1);
+    therapistGroup.add(tHair);
+
+    // Arms
+    for(let side = -1; side <= 1; side += 2) {
+        const tArm = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.05, 0.05, 0.6, 8),
+            therapistMat
+        );
+        tArm.position.set(side * 0.3, 1.1, 0.2);
+        tArm.rotation.z = side * 0.8;
+        tArm.rotation.x = 0.5;
+        therapistGroup.add(tArm);
+
+        // Hands
+        const tHand = new THREE.Mesh(
+            new THREE.SphereGeometry(0.06, 8, 8),
+            therapistMat
+        );
+        tHand.position.set(side * 0.5, 0.9, 0.4);
+        therapistGroup.add(tHand);
+
+        animatedObjects.push({
+            mesh: tHand,
+            type: 'massage_hand',
+            speed: 2,
+            offset: side,
+            baseX: side * 0.5,
+            baseY: 0.9,
+            baseZ: 0.4
+        });
+
+        animatedObjects.push({
+            mesh: tArm,
+            type: 'massage_arm',
+            speed: 2,
+            offset: side,
+            baseRotZ: side * 0.8
+        });
+    }
+
+    // Legs
+    for(let side = -1; side <= 1; side += 2) {
+        const tLeg = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.07, 0.07, 0.6, 8),
+            new THREE.MeshStandardMaterial({ color: 0x2a2a2a })
+        );
+        tLeg.position.set(side * 0.15, 0.3, 0);
+        therapistGroup.add(tLeg);
+    }
+
+    therapistGroup.position.set(1.3, 0, 0);
+    scene.add(therapistGroup);
+
+    animatedObjects.push({
+        mesh: therapistGroup,
+        type: 'therapist_sway',
+        speed: 0.8,
+        offset: 0
     });
 
-    // Card glow + trail
-    if (corner > 0) {
-      const clr = checkColors[corner].color;
-      card.style.borderColor = clr;
-      card.style.boxShadow = `0 0 30px ${clr}40, 0 0 60px ${clr}18`;
-      trail.style.opacity = '0.35';
-      trail.style.background = `radial-gradient(circle, ${clr}50, transparent)`;
-      trail.style.left = (t.clientX - 90) + 'px';
-      trail.style.top = (t.clientY - 90) + 'px';
-    } else {
-      card.style.borderColor = 'var(--border2)';
-      card.style.boxShadow = '';
-      trail.style.opacity = '0';
+    // Candles in room
+    for(let i = 0; i < 6; i++) {
+        const candleGroup = new THREE.Group();
+        const candle = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.03, 0.03, 0.2, 8),
+            new THREE.MeshStandardMaterial({ color: 0xfff8dc })
+        );
+        candle.position.y = 0.1;
+        candleGroup.add(candle);
+
+        const flame = new THREE.Mesh(
+            new THREE.SphereGeometry(0.025, 6, 6),
+            new THREE.MeshStandardMaterial({
+                color: 0xffa500,
+                emissive: 0xff6600,
+                emissiveIntensity: 2
+            })
+        );
+        flame.position.y = 0.22;
+        flame.scale.y = 1.5;
+        candleGroup.add(flame);
+
+        const fLight = new THREE.PointLight(0xff8c00, 0.2, 3);
+        fLight.position.y = 0.25;
+        candleGroup.add(fLight);
+
+        const cPositions = [
+            [-3, 0, -3], [3, 0, -3], [-3, 0, 3],
+            [3, 0, 3], [-2, 0, 0], [2, 0, -2]
+        ];
+        candleGroup.position.set(...cPositions[i]);
+        scene.add(candleGroup);
+
+        animatedObjects.push({
+            mesh: flame,
+            light: fLight,
+            type: 'flicker',
+            speed: 4 + Math.random() * 3,
+            offset: i * 0.7
+        });
     }
-  }
 
-  function onEnd(e) {
-    if (!isDragging) return;
-    isDragging = false;
+    // Oil bottles on side table
+    const sideTable = new THREE.Mesh(
+        new THREE.BoxGeometry(0.6, 0.7, 0.6),
+        new THREE.MeshStandardMaterial({ color: 0x4a3520 })
+    );
+    sideTable.position.set(-2.5, 0.35, -1);
+    scene.add(sideTable);
 
-    const corner = getActiveCorner(dx, dy);
-    trail.style.transition = 'opacity 0.3s';
-    trail.style.opacity = '0';
-
-    if (corner > 0) {
-      // Register answer key
-      answerKeys[qNum] = corner;
-
-      // Fly out
-      const flyX = dx * 4;
-      const flyY = dy * 4;
-      const flyRot = dx * 0.3;
-      const clr = checkColors[corner].color;
-
-      card.style.transition = 'transform 0.45s cubic-bezier(0.22,1,0.36,1), opacity 0.45s ease';
-      card.style.transform = `translate(${flyX}px, ${flyY}px) rotate(${flyRot}deg) scale(0.4)`;
-      card.style.opacity = '0';
-      card.style.boxShadow = `0 0 60px ${clr}`;
-
-      // Reset corners
-      [1,2,3,4].forEach(c => {
-        const el = document.getElementById(checkColors[c].label);
-        el.classList.remove('active');
-        el.style.boxShadow = '';
-      });
-
-      setTimeout(() => {
-        checkIndex++;
-        showCheckCard();
-      }, 400);
-    } else {
-      // Snap back
-      card.style.transition = 'transform 0.5s cubic-bezier(0.34,1.56,0.64,1), border-color 0.3s, box-shadow 0.3s';
-      card.style.transform = 'translate(0,0) rotate(0deg)';
-      card.style.borderColor = 'var(--border2)';
-      card.style.boxShadow = '';
-      dx = 0;
-      dy = 0;
+    const bottleColors = [0x4169e1, 0x32cd32, 0x9370db];
+    for(let i = 0; i < 3; i++) {
+        const bottle = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.04, 0.05, 0.2, 8),
+            new THREE.MeshStandardMaterial({ 
+                color: bottleColors[i], 
+                transparent: true, 
+                opacity: 0.7,
+                roughness: 0.2
+            })
+        );
+        bottle.position.set(-2.5 + (i-1) * 0.15, 0.8, -1);
+        scene.add(bottle);
     }
-  }
 
-  card.addEventListener('touchstart', onStart, {passive:false});
-  card.addEventListener('mousedown', onStart);
-  document.addEventListener('touchmove', onMove, {passive:false});
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('touchend', onEnd);
-  document.addEventListener('mouseup', onEnd);
+    // Hot stones (if applicable)
+    if(therapist.id === 'maya') {
+        for(let i = 0; i < 5; i++) {
+            const stone = new THREE.Mesh(
+                new THREE.SphereGeometry(0.08, 8, 6),
+                new THREE.MeshStandardMaterial({
+                    color: 0x2f2f2f,
+                    emissive: 0x331100,
+                    emissiveIntensity: 0.5,
+                    roughness: 0.4
+                })
+            );
+            stone.scale.y = 0.5;
+            stone.position.set(-2.3 + i * 0.12, 0.78, -0.7);
+            scene.add(stone);
+        }
+    }
 
-  // Store cleanup function
-  currentCleanup = () => {
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('touchend', onEnd);
-    document.removeEventListener('mouseup', onEnd);
-  };
+    // Ambient particles
+    const pGeo = new THREE.BufferGeometry();
+    const pPositions = [];
+    for(let i = 0; i < 60; i++) {
+        pPositions.push(
+            (Math.random() - 0.5) * 8,
+            Math.random() * 4,
+            (Math.random() - 0.5) * 8
+        );
+    }
+    pGeo.setAttribute('position', new THREE.Float32BufferAttribute(pPositions, 3));
+    const pMat = new THREE.PointsMaterial({
+        color: therapist.color,
+        size: 0.02,
+        transparent: true,
+        opacity: 0.3
+    });
+    const pSystem = new THREE.Points(pGeo, pMat);
+    scene.add(pSystem);
+    particleSystems.push(pSystem);
+
+    // Camera
+    camera.position.set(2, 3, 4);
+    camera.lookAt(0, 1, 0);
 }
 
-// ============ RESULTS ============
-function showResults() {
-  const timeTaken = Math.round((Date.now() - startTime) / 1000);
-  let correct = 0, wrong = 0, skipped = 0;
-  let details = [];
+// ==========================================
+// ANIMATION LOOP
+// ==========================================
 
-  for (let i = 1; i <= questionCount; i++) {
-    const ua = userAnswers[i];
-    const ak = answerKeys[i];
+function animate() {
+    requestAnimationFrame(animate);
+    const time = clock.getElapsedTime();
+    const delta = clock.getDelta();
 
-    if (ua === undefined) {
-      skipped++;
-      details.push({ q:i, status:'skipped', user:null, key:null, marks:0 });
-    } else if (ak === undefined) {
-      skipped++;
-      details.push({ q:i, status:'skipped', user:ua, key:null, marks:0 });
-    } else if (ua === ak) {
-      correct++;
-      details.push({ q:i, status:'correct', user:ua, key:ak, marks:4 });
-    } else {
-      wrong++;
-      details.push({ q:i, status:'wrong', user:ua, key:ak, marks:-1 });
+    // Animate objects
+    animatedObjects.forEach(obj => {
+        switch(obj.type) {
+            case 'bob':
+                obj.mesh.position.y += Math.sin(time * obj.speed + obj.offset) * 0.0005;
+                break;
+            case 'sway':
+                obj.mesh.rotation.z = Math.sin(time * obj.speed + obj.offset) * obj.amplitude;
+                break;
+            case 'flicker':
+                const flicker = 0.8 + Math.sin(time * obj.speed + obj.offset) * 0.2 + Math.sin(time * obj.speed * 2.7) * 0.1;
+                obj.mesh.scale.y = 1.5 * flicker;
+                obj.mesh.scale.x = flicker;
+                if(obj.light) obj.light.intensity = 0.2 * flicker;
+                break;
+            case 'massage_hand':
+                obj.mesh.position.x = obj.baseX + Math.sin(time * obj.speed) * 0.1;
+                obj.mesh.position.z = obj.baseZ + Math.cos(time * obj.speed * 1.3) * 0.15;
+                obj.mesh.position.y = obj.baseY + Math.sin(time * obj.speed * 0.7) * 0.03;
+                break;
+            case 'massage_arm':
+                obj.mesh.rotation.z = obj.baseRotZ + Math.sin(time * obj.speed) * 0.1;
+                obj.mesh.rotation.x = 0.5 + Math.sin(time * obj.speed * 1.3) * 0.1;
+                break;
+            case 'therapist_sway':
+                obj.mesh.position.x = 1.3 + Math.sin(time * obj.speed) * 0.05;
+                obj.mesh.rotation.y = Math.sin(time * obj.speed * 0.5) * 0.05;
+                break;
+        }
+    });
+
+    // Animate particles
+    particleSystems.forEach(ps => {
+        const positions = ps.geometry.attributes.position.array;
+        for(let i = 1; i < positions.length; i += 3) {
+            positions[i] += 0.002;
+            if(positions[i] > 5) positions[i] = 0;
+        }
+        ps.geometry.attributes.position.needsUpdate = true;
+    });
+
+    // Gentle camera movement
+    if(currentScene === 'lobby') {
+        camera.position.x = Math.sin(time * 0.1) * 0.3;
+        camera.position.y = 3 + Math.sin(time * 0.15) * 0.1;
+        camera.lookAt(0, 1, -2);
+    } else if(currentScene === 'massage') {
+        camera.position.x = 2 + Math.sin(time * 0.2) * 0.2;
+        camera.position.y = 3 + Math.sin(time * 0.15) * 0.1;
+        camera.lookAt(0, 1, 0);
     }
-  }
 
-  const totalMarks = correct * 4 - wrong * 1;
-  const maxMarks = questionCount * 4;
-  const pct = maxMarks > 0 ? Math.round((Math.max(0, totalMarks) / maxMarks) * 100) : 0;
-  const dashOffset = 440 - (440 * pct / 100);
-
-  // Save to history
-  const record = {
-    id: Date.now(),
-    name: testName,
-    date: new Date().toLocaleString(),
-    questionCount,
-    correct, wrong, skipped,
-    totalMarks, maxMarks,
-    timeTaken,
-    details
-  };
-  const hist = JSON.parse(localStorage.getItem('omr-history') || '[]');
-  hist.unshift(record);
-  localStorage.setItem('omr-history', JSON.stringify(hist));
-
-  // Render
-  showPage('resultPage');
-  const rc = document.getElementById('resultContent');
-  rc.innerHTML = `
-    <div style="text-align:center;margin-top:10px;margin-bottom:20px;">
-      <div style="font-size:20px;font-weight:900;margin-bottom:4px;">${testName}</div>
-      <div style="font-size:13px;color:var(--text2);font-weight:600;">
-        ⏱ ${formatTime(timeTaken)} • ${questionCount} Questions
-      </div>
-    </div>
-
-    <div class="result-ring-wrap">
-      <svg viewBox="0 0 160 160">
-        <defs>
-          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="var(--accent)"/>
-            <stop offset="100%" stop-color="var(--accent2)"/>
-          </linearGradient>
-        </defs>
-        <circle cx="80" cy="80" r="70" class="result-ring-bg"/>
-        <circle cx="80" cy="80" r="70" class="result-ring-fg animate"
-                style="stroke-dashoffset:${dashOffset};"/>
-      </svg>
-      <div class="result-center">
-        <div class="result-score show">${totalMarks}</div>
-        <div class="result-total-label show">of ${maxMarks}</div>
-      </div>
-    </div>
-
-    <div class="stat-grid">
-      <div class="stat-card glass" style="animation:popIn 0.5s 0.3s both;">
-        <div class="stat-val" style="color:var(--green);">${correct}</div>
-        <div class="stat-lbl">Correct</div>
-      </div>
-      <div class="stat-card glass" style="animation:popIn 0.5s 0.4s both;">
-        <div class="stat-val" style="color:var(--red);">${wrong}</div>
-        <div class="stat-lbl">Wrong</div>
-      </div>
-      <div class="stat-card glass" style="animation:popIn 0.5s 0.5s both;">
-        <div class="stat-val" style="color:var(--text2);">${skipped}</div>
-        <div class="stat-lbl">Skipped</div>
-      </div>
-    </div>
-
-    <div style="margin-top:20px;">
-      <div style="font-size:14px;font-weight:900;margin-bottom:12px;letter-spacing:0.5px;">ANSWER SHEET</div>
-      ${details.map((d, idx) => renderAnswerRow(d, idx)).join('')}
-    </div>`;
+    renderer.render(scene, camera);
 }
 
-function renderAnswerRow(d, idx) {
-  const delay = 0.5 + idx * 0.03;
+// ==========================================
+// GAME LOGIC
+// ==========================================
 
-  if (d.status === 'skipped') {
-    return `
-      <div class="ans-row glass" style="animation:slideUp 0.4s ${delay}s both;">
-        <div class="ans-qnum">${d.q}.</div>
-        <div class="ans-tags">
-          <span class="ans-tag" style="background:var(--surface2);color:var(--text2);">Unattempted</span>
-        </div>
-        <div class="ans-marks" style="color:var(--text2);">0</div>
-      </div>`;
-  }
-
-  if (d.status === 'correct') {
-    return `
-      <div class="ans-row glass" style="animation:slideUp 0.4s ${delay}s both;">
-        <div class="ans-qnum">${d.q}.</div>
-        <div class="ans-tags">
-          <span class="ans-tag" style="background:rgba(76,175,130,0.15);color:var(--green);">Key: ${d.key}</span>
-          <span class="ans-tag" style="background:rgba(91,141,239,0.15);color:var(--accent);">You: ${d.user}</span>
-        </div>
-        <div class="ans-marks" style="color:var(--green);">+4</div>
-      </div>`;
-  }
-
-  return `
-    <div class="ans-row glass" style="animation:slideUp 0.4s ${delay}s both;">
-      <div class="ans-qnum">${d.q}.</div>
-      <div class="ans-tags">
-        <span class="ans-tag" style="background:rgba(76,175,130,0.15);color:var(--green);">Key: ${d.key}</span>
-        <span class="ans-tag" style="background:rgba(224,107,122,0.15);color:var(--red);">You: ${d.user}</span>
-      </div>
-      <div class="ans-marks" style="color:var(--red);">−1</div>
-    </div>`;
+function startGame() {
+    document.getElementById('title-screen').style.display = 'none';
+    showChapter(1, 'A New Beginning', () => {
+        goToLobby();
+        showDialogue('Receptionist', 'Welcome to Serenity Spa! ✨ I\'m so glad you decided to visit us. We have three wonderful therapists available today. Each one has their own unique style and story. Take your time choosing!', [
+            { text: 'Thank you! I\'m excited to be here.', callback: () => {
+                hideDialogue();
+                showNotification('💡 Use the buttons below to navigate the spa!');
+            }}
+        ]);
+    });
 }
 
-// ============ TRY AGAIN ============
-function tryAgain() {
-  userAnswers = {};
-  answerKeys = {};
-  startTime = Date.now();
-  buildOMR();
-  showPage('omrPage');
-  document.getElementById('omrBubbleSizeRange').value = bubbleSize;
+function showChapter(num, title, callback) {
+    const screen = document.getElementById('chapter-screen');
+    document.getElementById('chapter-label').textContent = `CHAPTER ${num}`;
+    document.getElementById('chapter-title').textContent = title;
+    screen.style.display = 'flex';
 
-  if (timerEnabled) {
-    const h = parseInt(document.getElementById('timerH').value) || 0;
-    const m = parseInt(document.getElementById('timerM').value) || 0;
-    timerSeconds = h * 3600 + m * 60;
-    document.getElementById('timerEl').style.display = 'block';
-    updateTimerDisplay();
-    if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-      timerSeconds--;
-      updateTimerDisplay();
-      if (timerSeconds <= 0) {
-        clearInterval(timerInterval);
-        toast('⏰ Time is up!');
-        setTimeout(submitOMR, 1000);
-      }
+    setTimeout(() => {
+        screen.style.display = 'none';
+        if(callback) callback();
+    }, 3000);
+}
+
+function goToLobby() {
+    gameState.phase = 'lobby';
+    buildLobbyScene();
+
+    document.getElementById('therapist-select').style.display = 'none';
+    document.getElementById('massage-ui').style.display = 'none';
+    document.getElementById('session-timer').style.display = 'none';
+    document.getElementById('back-btn').style.display = 'none';
+    document.getElementById('hud').style.display = 'flex';
+    document.getElementById('lobby-nav').style.display = 'flex';
+    document.getElementById('story-progress').style.display = 'none';
+
+    updateHUD();
+}
+
+function showTherapistSelect() {
+    document.getElementById('lobby-nav').style.display = 'none';
+    document.getElementById('therapist-select').style.display = 'flex';
+
+    const grid = document.getElementById('therapist-grid');
+    grid.innerHTML = '';
+
+    therapists.forEach(t => {
+        const rel = gameState.relationships[t.id] || 0;
+        const relStars = '❤️'.repeat(Math.min(Math.floor(rel / 20), 5)) || '🤍';
+
+        const card = document.createElement('div');
+        card.className = 'therapist-card';
+        card.innerHTML = `
+            <div class="therapist-avatar" style="background: radial-gradient(circle, ${hexToCSS(t.color)}, ${hexToCSS(t.color)}33);">
+                <span>${t.emoji}</span>
+            </div>
+            <h3>${t.name}</h3>
+            <div class="specialty">${t.specialty}</div>
+            <div class="desc">${t.desc}</div>
+            <div style="color:#b89a7a; font-size:0.85em; margin-top:8px;">Bond: ${relStars}</div>
+            <div class="price">${t.price} Gold</div>
+        `;
+        card.onclick = () => selectTherapist(t);
+        grid.appendChild(card);
+    });
+}
+
+function selectTherapist(therapist) {
+    if(gameState.coins < therapist.price) {
+        showNotification('❌ Not enough gold! Rest to earn more.');
+        return;
+    }
+
+    gameState.coins -= therapist.price;
+    gameState.currentTherapist = therapist;
+
+    document.getElementById('therapist-select').style.display = 'none';
+
+    // Initialize relationship if needed
+    if(!gameState.relationships[therapist.id]) {
+        gameState.relationships[therapist.id] = 0;
+    }
+    if(!gameState.storyProgress[therapist.id]) {
+        gameState.storyProgress[therapist.id] = 'intro';
+    }
+
+    buildMassageRoom();
+
+    document.getElementById('hud').style.display = 'flex';
+    document.getElementById('lobby-nav').style.display = 'none';
+
+    // Start story
+    const storyPhase = gameState.storyProgress[therapist.id];
+    startStory(therapist, storyPhase);
+}
+
+function startStory(therapist, phase) {
+    const story = therapist.stories[phase];
+    if(!story || story.length === 0) {
+        startSession();
+        return;
+    }
+
+    playStoryNode(therapist, story, 0);
+}
+
+function playStoryNode(therapist, story, index) {
+    if(index >= story.length) {
+        startSession();
+        return;
+    }
+
+    const node = story[index];
+    const choices = node.choices.map(c => ({
+        text: c.text,
+        callback: () => {
+            if(c.mood) gameState.stats.mood = Math.min(100, gameState.stats.mood + c.mood);
+            if(c.relationship) {
+                gameState.relationships[therapist.id] = (gameState.relationships[therapist.id] || 0) + c.relationship;
+                spawnEmote('❤️');
+            }
+
+            if(c.next === 'start_session') {
+                hideDialogue();
+                startSession();
+            } else if(c.next === 'resume') {
+                hideDialogue();
+                showNotification('💆 Massage continues...');
+            } else if(c.next === 'end') {
+                hideDialogue();
+                advanceStory(therapist);
+                showNotification('💖 Your bond with ' + therapist.name + ' has deepened!');
+            } else if(typeof c.next === 'number') {
+                playStoryNode(therapist, story, c.next);
+            }
+            updateHUD();
+        }
+    }));
+
+    showDialogue(node.speaker, node.text, choices);
+}
+
+function advanceStory(therapist) {
+    const phases = ['intro', 'session_talk', 'deep'];
+    const currentPhase = gameState.storyProgress[therapist.id];
+    const currentIndex = phases.indexOf(currentPhase);
+
+    if(currentIndex < phases.length - 1) {
+        gameState.storyProgress[therapist.id] = phases[currentIndex + 1];
+        addJournalEntry(`Grew closer to ${therapist.name}. Our conversations are becoming deeper...`);
+    }
+
+    // Check for chapter progression
+    const totalProgress = Object.values(gameState.storyProgress).filter(p => p !== 'intro').length;
+    if(totalProgress >= 2 && gameState.currentChapter === 1) {
+        gameState.currentChapter = 2;
+        setTimeout(() => showChapter(2, 'Growing Bonds'), 2000);
+    }
+    if(totalProgress >= 4 && gameState.currentChapter === 2) {
+        gameState.currentChapter = 3;
+        setTimeout(() => showChapter(3, 'Heart to Heart'), 2000);
+    }
+}
+
+let sessionTimer = null;
+
+function startSession() {
+    gameState.phase = 'session';
+    gameState.sessionTime = 120; // 2 minutes
+
+    document.getElementById('massage-ui').style.display = 'flex';
+    document.getElementById('session-timer').style.display = 'block';
+    document.getElementById('back-btn').style.display = 'block';
+    document.getElementById('story-progress').style.display = 'block';
+
+    const rel = gameState.relationships[gameState.currentTherapist.id] || 0;
+    document.getElementById('story-progress').textContent = `Bond: ${rel} | ${gameState.currentTherapist.name}`;
+
+    updateTimer();
+
+    sessionTimer = setInterval(() => {
+        gameState.sessionTime--;
+        updateTimer();
+
+        // Passive stat gains
+        gameState.stats.relaxation = Math.min(100, gameState.stats.relaxation + 0.15);
+        gameState.stats.energy = Math.max(0, gameState.stats.energy - 0.05);
+        updateHUD();
+
+        if(gameState.sessionTime <= 0) {
+            endSession();
+        }
     }, 1000);
-  }
+
+    showNotification(`✨ Session with ${gameState.currentTherapist.name} has begun!`);
 }
 
-// ============ HISTORY ============
-function renderHistory() {
-  const hist = JSON.parse(localStorage.getItem('omr-history') || '[]');
-  const hc = document.getElementById('historyContent');
-
-  if (hist.length === 0) {
-    hc.innerHTML = `
-      <div style="text-align:center;padding:60px 20px;">
-        <div style="font-size:48px;margin-bottom:16px;opacity:0.3;">📋</div>
-        <div style="font-size:15px;font-weight:700;color:var(--text2);">No exams yet</div>
-        <div style="font-size:13px;color:var(--text2);margin-top:4px;">Complete a test to see it here</div>
-      </div>`;
-    return;
-  }
-
-  hc.innerHTML = `
-    <input type="text" class="search-input" placeholder="🔍 Search by test name..." oninput="filterHistory(this.value)">
-    <div id="historyList">
-      ${hist.map((h, i) => renderHistoryItem(h, i)).join('')}
-    </div>
-    <div style="text-align:center;margin-top:20px;">
-      <button class="modal-btn" style="color:var(--red);border-color:var(--red);" onclick="confirmClearHistory()">
-        🗑 Clear All History
-      </button>
-    </div>`;
+function updateTimer() {
+    const mins = Math.floor(gameState.sessionTime / 60);
+    const secs = gameState.sessionTime % 60;
+    document.getElementById('session-timer').textContent = `⏱ ${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-function renderHistoryItem(h, i) {
-  return `
-    <div class="history-item glass" style="animation:slideUp 0.4s ${i*0.05}s both;" data-name="${(h.name||'').toLowerCase()}" onclick="showHistoryDetail(${h.id})">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <div style="font-weight:900;font-size:15px;">${h.name || 'Untitled'}</div>
-        <div style="font-size:11px;color:var(--text2);font-weight:600;">${h.date}</div>
-      </div>
-      <div style="display:flex;gap:12px;font-size:12px;font-weight:700;">
-        <span style="color:var(--text2);">${h.questionCount}Q</span>
-        <span style="color:var(--green);">✓${h.correct}</span>
-        <span style="color:var(--red);">✗${h.wrong}</span>
-        <span style="color:var(--text2);">○${h.skipped}</span>
-        <span style="color:var(--accent);margin-left:auto;">${h.totalMarks}/${h.maxMarks}</span>
-      </div>
-      ${h.timeTaken ? `<div style="font-size:11px;color:var(--text2);margin-top:4px;font-weight:600;">⏱ ${formatTime(h.timeTaken)}</div>` : ''}
-    </div>`;
+function doMassage(type) {
+    if(gameState.phase !== 'session') return;
+
+    const bonuses = {
+        swedish: { relaxation: 8, satisfaction: 5, mood: 3 },
+        deep: { relaxation: 5, satisfaction: 8, mood: 2 },
+        hot: { relaxation: 10, satisfaction: 7, mood: 5 },
+        aroma: { relaxation: 7, satisfaction: 6, mood: 8 },
+        shiatsu: { relaxation: 6, satisfaction: 9, mood: 4 }
+    };
+
+    const bonus = bonuses[type];
+    const therapist = gameState.currentTherapist;
+
+    // Apply bonuses (some therapists are better at certain types)
+    let multiplier = 1;
+    if(therapist.id === 'sakura' && type === 'shiatsu') multiplier = 1.5;
+    if(therapist.id === 'elena' && (type === 'swedish' || type === 'deep')) multiplier = 1.5;
+    if(therapist.id === 'maya' && (type === 'hot' || type === 'aroma')) multiplier = 1.5;
+
+    gameState.stats.relaxation = Math.min(100, gameState.stats.relaxation + bonus.relaxation * multiplier);
+    gameState.stats.satisfaction = Math.min(100, gameState.stats.satisfaction + bonus.satisfaction * multiplier);
+    gameState.stats.mood = Math.min(100, gameState.stats.mood + bonus.mood * multiplier);
+    gameState.stats.energy = Math.max(0, gameState.stats.energy - 2);
+
+    // Relationship boost
+    gameState.relationships[therapist.id] = (gameState.relationships[therapist.id] || 0) + (multiplier > 1 ? 3 : 1);
+
+    const messages = {
+        swedish: ['Smooth, flowing strokes ease your tension...', 'Long, rhythmic movements calm your mind...'],
+        deep: ['Strong pressure reaches deep into your muscles...', 'Firm kneading releases stubborn knots...'],
+        hot: ['Warm stones melt away your stress...', 'The heat penetrates deep into your muscles...'],
+        aroma: ['Lavender and eucalyptus fill the air...', 'Essential oils work their magic on your skin...'],
+        shiatsu: ['Precise pressure points activate healing energy...', 'Ancient techniques restore your chi flow...']
+    };
+
+    const msg = messages[type][Math.floor(Math.random() * messages[type].length)];
+    showNotification(`💆 ${msg}`);
+
+    if(multiplier > 1) {
+        spawnEmote('⭐');
+        setTimeout(() => showNotification(`✨ ${therapist.name}'s specialty! Extra effective!`), 1500);
+    }
+
+    // Highlight active button
+    document.querySelectorAll('.massage-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+
+    updateHUD();
+
+    // Random therapist comments
+    if(Math.random() < 0.3) {
+        const comments = {
+            sakura: ['*hums a gentle melody*', 'Breathe deeply... let it all go...', 'Your energy is flowing beautifully now...'],
+            elena: ['There we go, that knot is releasing!', 'You\'re doing great, just relax!', '*works with confident, strong strokes*'],
+            maya: ['The elements are in harmony...', '*whispers a blessing*', 'Your chakras are aligning beautifully...']
+        };
+        const therapistComments = comments[therapist.id];
+        setTimeout(() => {
+            showDialogue(therapist.name, therapistComments[Math.floor(Math.random() * therapistComments.length)], [
+                { text: '*Enjoy the moment*', callback: hideDialogue }
+            ]);
+        }, 2000);
+    }
 }
 
-function filterHistory(query) {
-  const q = query.toLowerCase();
-  document.querySelectorAll('#historyList .history-item').forEach(item => {
-    const name = item.getAttribute('data-name') || '';
-    item.style.display = name.includes(q) ? '' : 'none';
-  });
+function talkDuring() {
+    if(gameState.phase !== 'session') return;
+
+    const therapist = gameState.currentTherapist;
+    const rel = gameState.relationships[therapist.id] || 0;
+
+    // Check if deep story is available
+    if(rel >= 30 && gameState.storyProgress[therapist.id] !== 'deep') {
+        gameState.storyProgress[therapist.id] = 'deep';
+        startStory(therapist, 'deep');
+        return;
+    }
+
+    if(gameState.storyProgress[therapist.id] === 'intro') {
+        gameState.storyProgress[therapist.id] = 'session_talk';
+    }
+
+    const phase = gameState.storyProgress[therapist.id];
+    const story = therapist.stories[phase];
+
+    if(story) {
+        playStoryNode(therapist, story, 0);
+    } else {
+        // Random conversation
+        const randomTalks = {
+            sakura: [
+                { speaker: 'Sakura', text: 'Did you know that in Japan, there are over 200 types of cherry blossom trees? Each one is unique, like each person who visits me.', choices: [
+                    { text: 'That\'s fascinating!', relationship: 2, callback: () => { hideDialogue(); updateHUD(); } }
+                ]},
+                { speaker: 'Sakura', text: '*smiles* You seem more relaxed today than when you first came. It makes me happy to see your progress.', choices: [
+                    { text: 'It\'s all thanks to you, Sakura.', relationship: 3, callback: () => { hideDialogue(); spawnEmote('🌸'); updateHUD(); } }
+                ]}
+            ],
+            elena: [
+                { speaker: 'Elena', text: 'You know what I miss about Sweden? The saunas. Nothing beats a good sauna after a long day. We should totally go sometime— I mean, uh, you should try one!', choices: [
+                    { text: '*laugh* That sounds like a plan!', relationship: 3, callback: () => { hideDialogue(); spawnEmote('😊'); updateHUD(); } }
+                ]},
+                { speaker: 'Elena', text: 'I\'ve been thinking about entering a massage therapy competition. Would you... would you want to be my practice partner? You have great muscles to work with!', choices: [
+                    { text: 'I\'d be honored, Elena!', relationship: 5, callback: () => { hideDialogue(); spawnEmote('💪'); updateHUD(); } }
+                ]}
+            ],
+            maya: [
+                { speaker: 'Maya', text: 'I had a dream about you last night. In Bali, we believe dreams are messages from the spirit world. You were surrounded by golden light...', choices: [
+                    { text: 'What does that mean?', relationship: 4, callback: () => { hideDialogue(); spawnEmote('✨'); updateHUD(); } }
+                ]},
+                { speaker: 'Maya', text: '*places a crystal near you* This amethyst has been charged under the full moon. It will protect your energy even after you leave here.', choices: [
+                    { text: 'Thank you, Maya. That means a lot.', relationship: 4, callback: () => { hideDialogue(); spawnEmote('💜'); updateHUD(); } }
+                ]}
+            ]
+        };
+
+        const talks = randomTalks[therapist.id];
+        const talk = talks[Math.floor(Math.random() * talks.length)];
+
+        const choices = talk.choices.map(c => ({
+            text: c.text,
+            callback: () => {
+                if(c.relationship) {
+                    gameState.relationships[therapist.id] += c.relationship;
+                }
+                c.callback();
+            }
+        }));
+
+        showDialogue(talk.speaker, talk.text, choices);
+    }
 }
 
-function confirmClearHistory() {
-  showModal('Clear History', 'Delete all saved exams? This cannot be undone.', 'clearHistory()');
+function endSession() {
+    clearInterval(sessionTimer);
+    gameState.phase = 'dialogue';
+
+    document.getElementById('massage-ui').style.display = 'none';
+    document.getElementById('session-timer').style.display = 'none';
+
+    const therapist = gameState.currentTherapist;
+    const rel = gameState.relationships[therapist.id] || 0;
+
+    // Bonus coins based on stats
+    const bonusCoins = Math.floor((gameState.stats.relaxation + gameState.stats.satisfaction) / 10);
+    gameState.coins += bonusCoins;
+
+    // End session dialogue
+    const endDialogues = {
+        sakura: rel > 30 
+            ? `*holds your hand gently* Thank you for trusting me today. Every session with you feels like... like coming home. I hope you feel the same way. 🌸`
+            : `*bows* Thank you for this session. Your body has released much tension. Please come again soon. Take care of yourself.`,
+        elena: rel > 30
+            ? `*sits beside you* Hey... I just want you to know that you're not just another client to me. You're... special. *tucks hair behind ear* Same time next week?`
+            : `*stretches* Great session! You're really improving. Those knots are getting smaller each time. Keep doing those stretches I showed you!`,
+        maya: rel > 30
+            ? `*takes both your hands* The universe brought us together for a reason. I feel our energies are intertwined now. This is... rare and precious. 🌿`
+            : `*places hands in prayer* The healing energy flows strong in you. The spirits are pleased. Go in peace and carry this light with you.`
+    };
+
+    showDialogue(therapist.name, endDialogues[therapist.id], [
+        { text: rel > 30 ? 'I feel the same way. Until next time. ❤️' : 'Thank you so much. I feel wonderful!', callback: () => {
+            hideDialogue();
+            showNotification(`✨ Session complete! +${bonusCoins} Gold earned`);
+            addJournalEntry(`Had a ${rel > 30 ? 'deeply meaningful' : 'wonderful'} session with ${therapist.name}. Feeling refreshed.`);
+            gameState.stats.energy = Math.max(20, gameState.stats.energy);
+
+            setTimeout(() => {
+                goToLobby();
+            }, 2000);
+        }}
+    ]);
+
+    updateHUD();
 }
-function clearHistory() {
-  localStorage.removeItem('omr-history');
-  renderHistory();
-  toast('History cleared');
+
+function visitShop() {
+    document.getElementById('lobby-nav').style.display = 'none';
+
+    const gifts = [
+        { name: '🌹 Rose Bouquet', price: 50, relationship: 10, desc: 'A beautiful bouquet of red roses' },
+        { name: '🍫 Chocolate Box', price: 30, relationship: 5, desc: 'Premium Belgian chocolates' },
+        { name: '💎 Crystal Pendant', price: 100, relationship: 15, desc: 'A shimmering amethyst pendant' },
+        { name: '📚 Poetry Book', price: 40, relationship: 8, desc: 'Classic love poems from around the world' },
+        { name: '🧴 Luxury Oil Set', price: 80, relationship: 12, desc: 'Premium essential oil collection' }
+    ];
+
+    let choices = gifts.map(g => ({
+        text: `${g.name} - ${g.price} Gold (${g.desc})`,
+        callback: () => {
+            if(gameState.coins >= g.price) {
+                gameState.coins -= g.price;
+                hideDialogue();
+                // Show therapist selection for gift
+                showDialogue('Shop Keeper', `Wonderful choice! Who would you like to give the ${g.name} to?`,
+                    therapists.map(t => ({
+                        text: `${t.emoji} ${t.name}`,
+                        callback: () => {
+                            gameState.relationships[t.id] = (gameState.relationships[t.id] || 0) + g.relationship;
+                            hideDialogue();
+                            spawnEmote('🎁');
+                            showNotification(`🎁 ${t.name} loved the ${g.name}! +${g.relationship} Bond`);
+                            addJournalEntry(`Gave ${g.name} to ${t.name}. She seemed very happy!`);
+                            updateHUD();
+                            setTimeout(goToLobby, 2000);
+                        }
+                    })).concat([{ text: 'Nevermind', callback: () => { gameState.coins += g.price; hideDialogue(); goToLobby(); } }])
+                );
+            } else {
+                hideDialogue();
+                showNotification('❌ Not enough gold!');
+                setTimeout(goToLobby, 1500);
+            }
+            updateHUD();
+        }
+    }));
+
+    choices.push({ text: '← Back to Lobby', callback: () => { hideDialogue(); goToLobby(); } });
+
+    showDialogue('Shop Keeper', 'Welcome to the Gift Shop! 🎁 A thoughtful gift can deepen your bond with any therapist. What catches your eye?', choices);
 }
 
-function showHistoryDetail(id) {
-  const hist = JSON.parse(localStorage.getItem('omr-history') || '[]');
-  const record = hist.find(h => h.id === id);
-  if (!record) return;
+function viewJournal() {
+    const entries = gameState.journalEntries.length > 0 
+        ? gameState.journalEntries.slice(-5).reverse().join('\n\n📝 ')
+        : 'No entries yet. Start your spa journey to fill your journal!';
 
-  showPage('historyDetailPage');
-  const hdc = document.getElementById('historyDetailContent');
+    let statusText = '\n\n--- Relationships ---\n';
+    therapists.forEach(t => {
+        const rel = gameState.relationships[t.id] || 0;
+        const hearts = '❤️'.repeat(Math.min(Math.floor(rel / 10), 5));
+        const empty = '🤍'.repeat(5 - Math.min(Math.floor(rel / 10), 5));
+        statusText += `${t.emoji} ${t.name}: ${hearts}${empty} (${rel})\n`;
+    });
 
-  const pct = record.maxMarks > 0 ? Math.round((Math.max(0, record.totalMarks) / record.maxMarks) * 100) : 0;
-  const dashOffset = 440 - (440 * pct / 100);
-
-  hdc.innerHTML = `
-    <div style="text-align:center;margin-top:10px;margin-bottom:20px;">
-      <div style="font-size:20px;font-weight:900;margin-bottom:4px;">${record.name || 'Untitled'}</div>
-      <div style="font-size:13px;color:var(--text2);font-weight:600;">
-        ${record.date} • ⏱ ${record.timeTaken ? formatTime(record.timeTaken) : 'N/A'}
-      </div>
-    </div>
-
-    <div class="result-ring-wrap">
-      <svg viewBox="0 0 160 160">
-        <defs>
-          <linearGradient id="ringGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="var(--accent)"/>
-            <stop offset="100%" stop-color="var(--accent2)"/>
-          </linearGradient>
-        </defs>
-        <circle cx="80" cy="80" r="70" class="result-ring-bg"/>
-        <circle cx="80" cy="80" r="70" class="result-ring-fg animate"
-                style="stroke-dashoffset:${dashOffset};stroke:url(#ringGrad2);"/>
-      </svg>
-      <div class="result-center">
-        <div class="result-score show">${record.totalMarks}</div>
-        <div class="result-total-label show">of ${record.maxMarks}</div>
-      </div>
-    </div>
-
-    <div class="stat-grid">
-      <div class="stat-card glass" style="animation:popIn 0.5s 0.3s both;">
-        <div class="stat-val" style="color:var(--green);">${record.correct}</div>
-        <div class="stat-lbl">Correct</div>
-      </div>
-      <div class="stat-card glass" style="animation:popIn 0.5s 0.4s both;">
-        <div class="stat-val" style="color:var(--red);">${record.wrong}</div>
-        <div class="stat-lbl">Wrong</div>
-      </div>
-      <div class="stat-card glass" style="animation:popIn 0.5s 0.5s both;">
-        <div class="stat-val" style="color:var(--text2);">${record.skipped}</div>
-        <div class="stat-lbl">Skipped</div>
-      </div>
-    </div>
-
-    <div style="margin-top:20px;">
-      <div style="font-size:14px;font-weight:900;margin-bottom:12px;letter-spacing:0.5px;">ANSWER SHEET</div>
-      ${record.details.map((d, idx) => renderAnswerRow(d, idx)).join('')}
-    </div>`;
+    showDialogue('📖 Your Journal', `Day ${gameState.day} | Chapter ${gameState.currentChapter}\n\n📝 ${entries}${statusText}`, [
+        { text: 'Close Journal', callback: () => { hideDialogue(); } }
+    ]);
 }
+
+function rest() {
+    gameState.day++;
+    gameState.stats.energy = 100;
+    gameState.stats.relaxation = Math.max(0, gameState.stats.relaxation - 10);
+    gameState.coins += 100;
+
+    addJournalEntry(`Day ${gameState.day}: Rested well and feel energized for a new day at the spa.`);
+
+    showNotification(`🌙 A new day begins! Day ${gameState.day} | +100 Gold`);
+    updateHUD();
+}
+
+// ==========================================
+// UI FUNCTIONS
+// ==========================================
+
+function showDialogue(speaker, text, choices) {
+    const box = document.getElementById('dialogue-box');
+    document.getElementById('speaker-name').textContent = speaker;
+    document.getElementById('dialogue-text').textContent = '';
+    document.getElementById('dialogue-choices').innerHTML = '';
+    box.style.display = 'block';
+
+    // Typewriter effect
+    let index = 0;
+    const textEl = document.getElementById('dialogue-text');
+    const typeInterval = setInterval(() => {
+        if(index < text.length) {
+            textEl.textContent += text[index];
+            index++;
+        } else {
+            clearInterval(typeInterval);
+            // Show choices
+            if(choices) {
+                const choicesDiv = document.getElementById('dialogue-choices');
+                choices.forEach(c => {
+                    const btn = document.createElement('button');
+                    btn.className = 'choice-btn';
+                    btn.textContent = c.text;
+                    btn.onclick = () => {
+                        if(c.callback) c.callback();
+                        else if(c.next !== undefined) {
+                            // Handled elsewhere
+                        }
+                    };
+                    choicesDiv.appendChild(btn);
+                });
+            }
+        }
+    }, 20);
+}
+
+function hideDialogue() {
+    document.getElementById('dialogue-box').style.display = 'none';
+}
+
+function updateHUD() {
+    document.getElementById('bar-relaxation').style.width = gameState.stats.relaxation + '%';
+    document.getElementById('bar-satisfaction').style.width = gameState.stats.satisfaction + '%';
+    document.getElementById('bar-energy').style.width = gameState.stats.energy + '%';
+    document.getElementById('bar-mood').style.width = gameState.stats.mood + '%';
+    document.getElementById('coins-display').textContent = `💰 ${gameState.coins} Gold`;
+    document.getElementById('day-display').textContent = `Day ${gameState.day} | Ch.${gameState.currentChapter}`;
+}
+
+function showNotification(text) {
+    const notif = document.createElement('div');
+    notif.className = 'notification';
+    notif.textContent = text;
+    document.getElementById('ui-overlay').appendChild(notif);
+    setTimeout(() => notif.remove(), 3000);
+}
+
+function spawnEmote(emoji) {
+    const emote = document.createElement('div');
+    emote.className = 'emote-particle';
+    emote.textContent = emoji;
+    emote.style.left = (window.innerWidth / 2 + (Math.random() - 0.5) * 200) + 'px';
+    emote.style.top = (window.innerHeight / 2) + 'px';
+    document.getElementById('ui-overlay').appendChild(emote);
+    setTimeout(() => emote.remove(), 2000);
+}
+
+function addJournalEntry(entry) {
+    gameState.journalEntries.push(entry);
+}
+
+function hexToCSS(hex) {
+    const r = (hex >> 16) & 255;
+    const g = (hex >> 8) & 255;
+    const b = hex & 255;
+    return `rgb(${r},${g},${b})`;
+}
+
+function showCredits() {
+    showDialogue('About Serenity Spa', 'A narrative massage therapy simulation game. Build relationships with unique therapists, experience their stories, and find your inner peace. Each therapist has their own personality, backstory, and special massage techniques. Deepen your bonds through conversations and thoughtful gifts.\n\n🎮 Made with Three.js\n💜 A tasteful wellness experience', [
+        { text: 'Close', callback: hideDialogue }
+    ]);
+}
+
+// ==========================================
+// INITIALIZE
+// ==========================================
+
+initThreeJS();
+buildLobbyScene();
+animate();
 </script>
+
 </body>
 </html>
