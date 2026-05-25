@@ -1,1991 +1,551 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Serenity Spa - Massage Therapy Simulator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vipul AI - Intelligence OS</title>
+    
+    <!-- Premium Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PrismJS (Syntax Highlighting) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    
+    <!-- React & Framer Motion -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    
+    <!-- Markdown & Zip Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- PrismJS Components -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-jsx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+                    colors: {
+                        deep: '#030305',
+                        glass: 'rgba(255, 255, 255, 0.04)',
+                        glassBorder: 'rgba(255, 255, 255, 0.08)',
+                        neon: { cyan: '#00e5ff', purple: '#b300ff', blue: '#2962ff' }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        body { background-color: #030305; color: #ffffff; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+        #root { height: 100dvh; width: 100vw; display: flex; flex-direction: column; }
+        ::-webkit-scrollbar { display: none; }
+        * { -ms-overflow-style: none; scrollbar-width: none; }
 
-        body {
-            overflow: hidden;
-            font-family: 'Georgia', serif;
-            background: #0a0a0a;
-        }
+        .glass-panel { background: rgba(15, 15, 20, 0.8); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-top: 1px solid rgba(255, 255, 255, 0.08); }
+        .sidebar-glass { background: rgba(7, 7, 10, 0.85); backdrop-filter: blur(30px); border-right: 1px solid rgba(255, 255, 255, 0.08); }
+        
+        .chat-input-container { background: rgba(10, 10, 15, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; transition: all 0.3s ease; display: flex; flex-direction: column; position: relative; }
+        .chat-input-container:focus-within { border-color: rgba(0, 229, 255, 0.5); box-shadow: 0 0 20px rgba(0, 229, 255, 0.1); background: rgba(15, 15, 20, 0.8); }
 
-        #gameCanvas {
-            display: block;
-        }
+        .settings-input, .search-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 10px 14px; border-radius: 12px; color: #fff; font-size: 0.85rem; transition: all 0.3s ease; }
+        .settings-input { font-family: 'JetBrains Mono', monospace; margin-top: 6px; }
+        .settings-input:focus, .search-input:focus { outline: none; border-color: #00e5ff; box-shadow: 0 0 15px rgba(0,229,255,0.2); }
 
-        #ui-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 10;
-        }
+        .prose { font-size: 0.95rem; line-height: 1.6; word-wrap: break-word; }
+        .prose pre { margin: 0; padding: 1rem; overflow-x: auto; font-size: 0.85rem; background: transparent !important; }
+        .prose code { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.1); padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.85em; }
+        .prose pre code { background: transparent; padding: 0; }
+        .prose p { margin-bottom: 0.8rem; }
+        .prose a { color: #00e5ff; }
 
-        #ui-overlay > * {
-            pointer-events: auto;
-        }
+        .code-block-wrapper { background: #09090b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; margin: 1rem 0; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .code-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        
+        .ambient-bg { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 0% 0%, rgba(0, 229, 255, 0.05) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(179, 0, 255, 0.05) 0%, transparent 50%); }
 
-        /* Title Screen */
-        #title-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 30%, #1a3a2e 60%, #0a1a2e 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-
-        #title-screen h1 {
-            font-size: 4em;
-            color: #e8d5b7;
-            text-shadow: 0 0 30px rgba(232, 213, 183, 0.5);
-            margin-bottom: 10px;
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        #title-screen .subtitle {
-            font-size: 1.3em;
-            color: #b89a7a;
-            margin-bottom: 50px;
-            letter-spacing: 3px;
-        }
-
-        @keyframes glow {
-            from { text-shadow: 0 0 20px rgba(232, 213, 183, 0.3); }
-            to { text-shadow: 0 0 40px rgba(232, 213, 183, 0.7), 0 0 80px rgba(232, 213, 183, 0.3); }
-        }
-
-        .btn {
-            padding: 15px 50px;
-            font-size: 1.2em;
-            font-family: 'Georgia', serif;
-            border: 2px solid #e8d5b7;
-            background: rgba(232, 213, 183, 0.1);
-            color: #e8d5b7;
-            cursor: pointer;
-            border-radius: 30px;
-            transition: all 0.3s;
-            margin: 10px;
-            letter-spacing: 2px;
-        }
-
-        .btn:hover {
-            background: rgba(232, 213, 183, 0.3);
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(232, 213, 183, 0.3);
-        }
-
-        /* HUD */
-        #hud {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            display: none;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .hud-panel {
-            background: rgba(20, 10, 30, 0.85);
-            border: 1px solid rgba(232, 213, 183, 0.3);
-            border-radius: 15px;
-            padding: 15px 25px;
-            color: #e8d5b7;
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-bar {
-            display: flex;
-            align-items: center;
-            margin: 5px 0;
-            gap: 10px;
-        }
-
-        .stat-bar label {
-            font-size: 0.85em;
-            width: 80px;
-            color: #b89a7a;
-        }
-
-        .bar-container {
-            width: 150px;
-            height: 12px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .bar-fill {
-            height: 100%;
-            border-radius: 6px;
-            transition: width 0.5s ease;
-        }
-
-        .bar-fill.relaxation { background: linear-gradient(90deg, #4a9eff, #7bc8ff); }
-        .bar-fill.satisfaction { background: linear-gradient(90deg, #ff6b9d, #ffa3c4); }
-        .bar-fill.energy { background: linear-gradient(90deg, #ffd700, #ffed4a); }
-        .bar-fill.mood { background: linear-gradient(90deg, #50c878, #7ddf9e); }
-
-        #coins-display {
-            font-size: 1.2em;
-            color: #ffd700;
-        }
-
-        /* Dialogue Box */
-        #dialogue-box {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 70%;
-            max-width: 800px;
-            background: rgba(15, 8, 25, 0.92);
-            border: 1px solid rgba(232, 213, 183, 0.4);
-            border-radius: 20px;
-            padding: 25px 30px;
-            display: none;
-            backdrop-filter: blur(15px);
-        }
-
-        #speaker-name {
-            font-size: 1.1em;
-            color: #ffa3c4;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        #dialogue-text {
-            font-size: 1em;
-            color: #e8d5b7;
-            line-height: 1.6;
-            min-height: 50px;
-        }
-
-        #dialogue-choices {
-            margin-top: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .choice-btn {
-            padding: 10px 20px;
-            font-size: 0.95em;
-            font-family: 'Georgia', serif;
-            border: 1px solid rgba(232, 213, 183, 0.3);
-            background: rgba(232, 213, 183, 0.08);
-            color: #e8d5b7;
-            cursor: pointer;
-            border-radius: 10px;
-            transition: all 0.3s;
-            text-align: left;
-        }
-
-        .choice-btn:hover {
-            background: rgba(232, 213, 183, 0.2);
-            border-color: rgba(232, 213, 183, 0.6);
-            padding-left: 30px;
-        }
-
-        /* Therapist Selection */
-        #therapist-select {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 5, 20, 0.95);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-        }
-
-        #therapist-select h2 {
-            font-size: 2.5em;
-            color: #e8d5b7;
-            margin-bottom: 40px;
-        }
-
-        .therapist-grid {
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: 1000px;
-        }
-
-        .therapist-card {
-            width: 250px;
-            background: rgba(30, 15, 45, 0.9);
-            border: 2px solid rgba(232, 213, 183, 0.2);
-            border-radius: 20px;
-            padding: 25px;
-            cursor: pointer;
-            transition: all 0.4s;
-            text-align: center;
-        }
-
-        .therapist-card:hover {
-            transform: translateY(-10px);
-            border-color: rgba(232, 213, 183, 0.6);
-            box-shadow: 0 15px 40px rgba(232, 213, 183, 0.15);
-        }
-
-        .therapist-avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            margin: 0 auto 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3em;
-        }
-
-        .therapist-card h3 {
-            color: #ffa3c4;
-            font-size: 1.3em;
-            margin-bottom: 5px;
-        }
-
-        .therapist-card .specialty {
-            color: #b89a7a;
-            font-size: 0.9em;
-            margin-bottom: 10px;
-        }
-
-        .therapist-card .desc {
-            color: #8a7a6a;
-            font-size: 0.85em;
-            line-height: 1.4;
-        }
-
-        .therapist-card .price {
-            color: #ffd700;
-            font-size: 1.1em;
-            margin-top: 10px;
-        }
-
-        /* Massage UI */
-        #massage-ui {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .massage-btn {
-            padding: 12px 25px;
-            font-size: 0.95em;
-            font-family: 'Georgia', serif;
-            border: 1px solid rgba(232, 213, 183, 0.3);
-            background: rgba(20, 10, 35, 0.85);
-            color: #e8d5b7;
-            cursor: pointer;
-            border-radius: 12px;
-            transition: all 0.3s;
-            backdrop-filter: blur(10px);
-        }
-
-        .massage-btn:hover {
-            background: rgba(232, 213, 183, 0.2);
-            transform: scale(1.05);
-        }
-
-        .massage-btn.active {
-            border-color: #ffa3c4;
-            background: rgba(255, 163, 196, 0.15);
-        }
-
-        /* Timer */
-        #session-timer {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 1.5em;
-            color: #e8d5b7;
-            display: none;
-            background: rgba(20, 10, 30, 0.85);
-            padding: 8px 25px;
-            border-radius: 20px;
-            border: 1px solid rgba(232, 213, 183, 0.3);
-        }
-
-        /* Notification */
-        .notification {
-            position: absolute;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(20, 10, 35, 0.9);
-            border: 1px solid #ffd700;
-            color: #ffd700;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 1em;
-            animation: slideDown 0.5s ease, fadeOut 0.5s ease 2s forwards;
-            z-index: 200;
-        }
-
-        @keyframes slideDown {
-            from { top: 40px; opacity: 0; }
-            to { top: 80px; opacity: 1; }
-        }
-
-        @keyframes fadeOut {
-            to { opacity: 0; top: 60px; }
-        }
-
-        /* Back button */
-        #back-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            font-size: 0.9em;
-            font-family: 'Georgia', serif;
-            border: 1px solid rgba(232, 213, 183, 0.3);
-            background: rgba(20, 10, 35, 0.85);
-            color: #e8d5b7;
-            cursor: pointer;
-            border-radius: 10px;
-            display: none;
-            z-index: 60;
-        }
-
-        /* Story progress indicator */
-        #story-progress {
-            position: absolute;
-            bottom: 10px;
-            right: 20px;
-            color: rgba(232, 213, 183, 0.4);
-            font-size: 0.8em;
-            display: none;
-        }
-
-        /* Loading */
-        .loading-dots::after {
-            content: '';
-            animation: dots 1.5s steps(4, end) infinite;
-        }
-
-        @keyframes dots {
-            0%, 20% { content: ''; }
-            40% { content: '.'; }
-            60% { content: '..'; }
-            80%, 100% { content: '...'; }
-        }
-
-        /* Chapter screen */
-        #chapter-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(5, 2, 10, 0.97);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 80;
-            animation: fadeIn 1s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        #chapter-screen h2 {
-            font-size: 1.2em;
-            color: #b89a7a;
-            letter-spacing: 5px;
-            margin-bottom: 20px;
-        }
-
-        #chapter-screen h1 {
-            font-size: 3em;
-            color: #e8d5b7;
-            text-shadow: 0 0 30px rgba(232, 213, 183, 0.3);
-        }
-
-        /* Lobby navigation */
-        #lobby-nav {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: none;
-            gap: 15px;
-        }
-
-        .lobby-btn {
-            padding: 12px 30px;
-            font-size: 1em;
-            font-family: 'Georgia', serif;
-            border: 1px solid rgba(232, 213, 183, 0.4);
-            background: rgba(20, 10, 35, 0.85);
-            color: #e8d5b7;
-            cursor: pointer;
-            border-radius: 15px;
-            transition: all 0.3s;
-            backdrop-filter: blur(10px);
-        }
-
-        .lobby-btn:hover {
-            background: rgba(232, 213, 183, 0.2);
-            transform: translateY(-3px);
-        }
-
-        /* Emote particles */
-        .emote-particle {
-            position: absolute;
-            font-size: 2em;
-            animation: floatUp 2s ease-out forwards;
-            pointer-events: none;
-            z-index: 150;
-        }
-
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0) scale(0.5); }
-            50% { opacity: 1; transform: translateY(-50px) scale(1.2); }
-            100% { opacity: 0; transform: translateY(-100px) scale(0.8); }
-        }
+        .thinking-orb { width: 12px; height: 12px; border-radius: 50%; background: #00e5ff; box-shadow: 0 0 10px #00e5ff, 0 0 20px #00e5ff; animation: pulse-glow 1.5s infinite ease-in-out alternate; }
+        @keyframes pulse-glow { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 15px #00e5ff, 0 0 30px #00e5ff; } }
+        
+        .studio-frame { width: 100%; height: 100%; border: none; background: #fff; }
     </style>
 </head>
 <body>
+    <div id="root"></div>
 
-<canvas id="gameCanvas"></canvas>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { motion, AnimatePresence } = window.Motion;
 
-<div id="ui-overlay">
-    <!-- Title Screen -->
-    <div id="title-screen">
-        <h1>✨ Serenity Spa ✨</h1>
-        <p class="subtitle">MASSAGE THERAPY SIMULATOR</p>
-        <button class="btn" onclick="startGame()">Begin Journey</button>
-        <button class="btn" onclick="showCredits()" style="font-size:0.9em; padding:10px 30px; margin-top:5px;">About</button>
-    </div>
+        const renderer = new marked.Renderer();
+        renderer.code = function(code, language) {
+            const escapedCode = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            const lang = language || 'plaintext';
+            return `
+                <div class="code-block-wrapper">
+                    <div class="code-header">
+                        <span class="text-xs text-gray-400 font-mono uppercase tracking-wider">${lang}</span>
+                        <div class="flex gap-3">
+                            <button class="copy-btn text-xs text-gray-400 hover:text-neon-cyan flex items-center gap-1 transition-colors" data-code="${escapedCode}">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy
+                            </button>
+                            <button class="download-btn text-xs text-gray-400 hover:text-green-400 flex items-center gap-1 transition-colors" data-code="${escapedCode}" data-lang="${lang}">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Save
+                            </button>
+                        </div>
+                    </div>
+                    <pre><code class="language-${lang}">${escapedCode}</code></pre>
+                </div>
+            `;
+        };
+        marked.setOptions({ renderer });
 
-    <!-- Chapter Screen -->
-    <div id="chapter-screen">
-        <h2 id="chapter-label">CHAPTER 1</h2>
-        <h1 id="chapter-title">A New Beginning</h1>
-    </div>
+        const Icons = {
+            Menu: () => <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>,
+            Send: () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>,
+            Settings: () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>,
+            Key: () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>,
+            ChevronDown: () => <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
+            Sparkle: () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 3v18M3 12h18M18.36 5.64l-12.72 12.72M5.64 5.64l12.72 12.72"></path></svg>,
+            Code: () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>,
+            Play: () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
+            Download: () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>,
+            X: () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        };
 
-    <!-- HUD -->
-    <div id="hud">
-        <div class="hud-panel">
-            <div class="stat-bar">
-                <label>Relaxation</label>
-                <div class="bar-container"><div class="bar-fill relaxation" id="bar-relaxation" style="width:20%"></div></div>
-            </div>
-            <div class="stat-bar">
-                <label>Satisfaction</label>
-                <div class="bar-container"><div class="bar-fill satisfaction" id="bar-satisfaction" style="width:0%"></div></div>
-            </div>
-            <div class="stat-bar">
-                <label>Energy</label>
-                <div class="bar-container"><div class="bar-fill energy" id="bar-energy" style="width:100%"></div></div>
-            </div>
-            <div class="stat-bar">
-                <label>Mood</label>
-                <div class="bar-container"><div class="bar-fill mood" id="bar-mood" style="width:50%"></div></div>
-            </div>
-        </div>
-        <div class="hud-panel">
-            <div id="coins-display">💰 500 Gold</div>
-            <div style="color:#b89a7a; font-size:0.85em; margin-top:5px;" id="day-display">Day 1</div>
-        </div>
-    </div>
-
-    <!-- Session Timer -->
-    <div id="session-timer">⏱ 5:00</div>
-
-    <!-- Therapist Selection -->
-    <div id="therapist-select">
-        <h2>Choose Your Therapist</h2>
-        <div class="therapist-grid" id="therapist-grid"></div>
-        <button class="btn" onclick="goToLobby()" style="margin-top:30px; font-size:0.9em;">Back to Lobby</button>
-    </div>
-
-    <!-- Dialogue Box -->
-    <div id="dialogue-box">
-        <div id="speaker-name"></div>
-        <div id="dialogue-text"></div>
-        <div id="dialogue-choices"></div>
-    </div>
-
-    <!-- Massage Actions -->
-    <div id="massage-ui">
-        <div style="color:#b89a7a; text-align:center; margin-bottom:5px; font-size:0.85em;">Techniques</div>
-        <button class="massage-btn" onclick="doMassage('swedish')">🖐 Swedish</button>
-        <button class="massage-btn" onclick="doMassage('deep')">💪 Deep Tissue</button>
-        <button class="massage-btn" onclick="doMassage('hot')">🔥 Hot Stone</button>
-        <button class="massage-btn" onclick="doMassage('aroma')">🌸 Aromatherapy</button>
-        <button class="massage-btn" onclick="doMassage('shiatsu')">🤲 Shiatsu</button>
-        <button class="massage-btn" onclick="talkDuring()">💬 Talk</button>
-    </div>
-
-    <!-- Lobby Navigation -->
-    <div id="lobby-nav">
-        <button class="lobby-btn" onclick="showTherapistSelect()">🧖‍♀️ Book Session</button>
-        <button class="lobby-btn" onclick="visitShop()">🛍 Gift Shop</button>
-        <button class="lobby-btn" onclick="viewJournal()">📖 Journal</button>
-        <button class="lobby-btn" onclick="rest()">🌙 Rest</button>
-    </div>
-
-    <button id="back-btn" onclick="goToLobby()">← Back</button>
-
-    <div id="story-progress"></div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
-// ==========================================
-// GAME ENGINE
-// ==========================================
-
-let scene, camera, renderer, clock;
-let gameState = {
-    phase: 'title', // title, lobby, selecting, session, dialogue
-    day: 1,
-    coins: 500,
-    stats: {
-        relaxation: 20,
-        satisfaction: 0,
-        energy: 100,
-        mood: 50
-    },
-    currentTherapist: null,
-    relationships: {},
-    storyProgress: {},
-    unlockedStories: [],
-    sessionTime: 300,
-    currentChapter: 1,
-    journalEntries: [],
-    giftsGiven: {}
-};
-
-// Therapist Data
-const therapists = [
-    {
-        id: 'sakura',
-        name: 'Sakura',
-        specialty: 'Traditional Japanese Shiatsu',
-        desc: 'A gentle soul from Kyoto who believes massage heals both body and spirit. She carries the wisdom of ancient techniques.',
-        color: 0xff9eb8,
-        skinColor: 0xfdd5b1,
-        hairColor: 0x1a1a2e,
-        price: 100,
-        emoji: '🌸',
-        personality: 'gentle',
-        stories: {
-            intro: [
-                { speaker: 'Sakura', text: 'Welcome to our spa. I am Sakura. *bows gracefully* I sense much tension in you...', choices: [
-                    { text: 'Thank you, Sakura. I\'ve heard wonderful things about you.', mood: 10, next: 1 },
-                    { text: 'I\'ve been really stressed lately. Can you help?', mood: 5, next: 2 }
-                ]},
-                { speaker: 'Sakura', text: '*smiles warmly* You are too kind. In my homeland, we say "The body speaks what the heart cannot." Let me listen to yours.', choices: [
-                    { text: 'That\'s beautiful. Please, I\'m ready.', next: 'start_session' }
-                ]},
-                { speaker: 'Sakura', text: 'Of course. Stress is like a river blocked by stones. Together, we shall remove them one by one. Please, lie down and breathe deeply.', choices: [
-                    { text: 'That sounds wonderful. Let\'s begin.', next: 'start_session' }
-                ]}
-            ],
-            session_talk: [
-                { speaker: 'Sakura', text: 'You carry your stress in your shoulders... Tell me, what weighs so heavily on your mind?', choices: [
-                    { text: 'Work has been overwhelming lately.', mood: 5, next: 1 },
-                    { text: 'I just needed some peace and quiet.', mood: 8, next: 2 }
-                ]},
-                { speaker: 'Sakura', text: 'Ah, the modern world asks so much of us. But remember - even the busiest cherry blossom tree finds time to bloom. *applies warm pressure to your back*', choices: [
-                    { text: 'You\'re very wise, Sakura.', relationship: 5, next: 'resume' }
-                ]},
-                { speaker: 'Sakura', text: '*nods approvingly* Then you have already taken the first step to healing. The fact that you are here... that takes courage. *gentle strokes along your spine*', choices: [
-                    { text: '*Close your eyes and relax*', relationship: 3, next: 'resume' }
-                ]}
-            ],
-            deep: [
-                { speaker: 'Sakura', text: '*pauses her work* Can I tell you something? When I first came here from Japan, I was very lonely. This spa... it became my home.', choices: [
-                    { text: 'I\'m glad you found your place here.', relationship: 10, next: 1 },
-                    { text: 'Do you miss home?', relationship: 8, next: 2 }
-                ]},
-                { speaker: 'Sakura', text: '*blushes slightly* And now, with clients like you who truly appreciate the art... it makes every day worthwhile. You have a gentle spirit.', choices: [
-                    { text: 'You bring out the best in people, Sakura.', relationship: 15, next: 'end' }
-                ]},
-                { speaker: 'Sakura', text: 'Every day. I miss the cherry blossoms in spring, the temple bells... But I carry them in my heart. *her hands work a deep knot* And I share their peace through my work.', choices: [
-                    { text: 'I can feel that peace through your touch.', relationship: 12, next: 'end' }
-                ]}
-            ]
-        }
-    },
-    {
-        id: 'elena',
-        name: 'Elena',
-        specialty: 'Swedish & Deep Tissue Expert',
-        desc: 'A confident professional from Stockholm with strong hands and a warm heart. Known for her incredible deep tissue technique.',
-        color: 0x7bc8ff,
-        skinColor: 0xfce4d6,
-        hairColor: 0xe8c170,
-        price: 120,
-        emoji: '❄️',
-        personality: 'confident',
-        stories: {
-            intro: [
-                { speaker: 'Elena', text: 'Hey there! I\'m Elena. *extends hand for a firm handshake* Ready to let me work my magic? I promise you\'ll feel like a new person.', choices: [
-                    { text: 'I like your confidence! Let\'s do this.', mood: 10, next: 1 },
-                    { text: 'I\'ve never had a professional massage before...', mood: 5, next: 2 }
-                ]},
-                { speaker: 'Elena', text: '*grins* That\'s the spirit! I was a physiotherapist back in Stockholm. Trust me, these hands know what they\'re doing. Hop on the table!', choices: [
-                    { text: 'I\'m in good hands then!', next: 'start_session' }
-                ]},
-                { speaker: 'Elena', text: '*softens her voice* Don\'t worry! Everyone starts somewhere. I\'ll be gentle - well, mostly gentle. *winks* I\'ll talk you through everything. You\'re safe with me.', choices: [
-                    { text: 'Thank you, Elena. That makes me feel better.', next: 'start_session' }
-                ]}
-            ],
-            session_talk: [
-                { speaker: 'Elena', text: '*pressing firmly on a knot* Wow, you\'re really tight here. What do you do for a living? Because your muscles are staging a protest.', choices: [
-                    { text: '*laugh* I sit at a desk all day.', mood: 5, next: 1 },
-                    { text: 'I try to exercise but never stretch properly.', mood: 3, next: 2 }
-                ]},
-                { speaker: 'Elena', text: '*laughs* Classic! I call this "desk warrior syndrome." Don\'t worry, I\'ll have you loosened up. Back in Sweden, we have a saying: "A stiff body makes a stiff mind."', choices: [
-                    { text: 'I can already feel the difference.', relationship: 5, next: 'resume' }
-                ]},
-                { speaker: 'Elena', text: 'Stretching is the most underrated thing! *works along your shoulders* Tell you what - come back next time and I\'ll show you some amazing stretches. Consider it a bonus.', choices: [
-                    { text: 'I\'d love that, Elena!', relationship: 8, next: 'resume' }
-                ]}
-            ],
-            deep: [
-                { speaker: 'Elena', text: '*stops and sits beside you* You know... I don\'t usually open up to clients. But you\'re different. You actually listen.', choices: [
-                    { text: 'I enjoy our conversations, Elena.', relationship: 10, next: 1 },
-                    { text: 'You can tell me anything.', relationship: 12, next: 2 }
-                ]},
-                { speaker: 'Elena', text: '*runs fingers through her blonde hair* I left Sweden because... I needed to find myself. My family wanted me to be a doctor. But healing people with my hands, one person at a time... this is who I am.', choices: [
-                    { text: 'You\'re amazing at what you do. Never doubt that.', relationship: 15, next: 'end' }
-                ]},
-                { speaker: 'Elena', text: '*takes a deep breath* I was engaged once. He didn\'t understand why I chose this over medicine. But touch... real, healing touch... it\'s an art. And you appreciate that.', choices: [
-                    { text: 'His loss. You\'re extraordinary, Elena.', relationship: 18, next: 'end' }
-                ]}
-            ]
-        }
-    },
-    {
-        id: 'maya',
-        name: 'Maya',
-        specialty: 'Aromatherapy & Hot Stone',
-        desc: 'A free-spirited healer from Bali who combines essential oils with ancient volcanic stone techniques. Her presence alone is calming.',
-        color: 0x50c878,
-        skinColor: 0xc68642,
-        hairColor: 0x0d0d0d,
-        price: 150,
-        emoji: '🌿',
-        personality: 'mystical',
-        stories: {
-            intro: [
-                { speaker: 'Maya', text: '*places hands together in prayer* Namaste. I am Maya. The universe has guided you here today... I can see your aura needs healing.', choices: [
-                    { text: 'I believe in energy healing. Please help me.', mood: 12, next: 1 },
-                    { text: 'I\'m not sure about auras, but I need relaxation.', mood: 5, next: 2 }
-                ]},
-                { speaker: 'Maya', text: '*lights incense and smiles* Beautiful. Close your eyes... *waves essential oils* Breathe in the lavender and sandalwood. Feel the tension dissolving like morning mist...', choices: [
-                    { text: '*Inhale deeply and surrender to the experience*', next: 'start_session' }
-                ]},
-                { speaker: 'Maya', text: '*laughs gently* The mind questions what the body already knows. You don\'t need to believe - just feel. *places a warm stone on your back* Tell me... does that feel like nothing?', choices: [
-                    { text: 'That feels... incredible actually.', next: 'start_session' }
-                ]}
-            ],
-            session_talk: [
-                { speaker: 'Maya', text: '*arranging hot stones along your spine* Each stone carries the energy of the earth. This one... *places it carefully* ...is for your heart chakra. I sense it has been closed.', choices: [
-                    { text: 'Maybe you\'re right. I have been guarded lately.', mood: 8, next: 1 },
-                    { text: 'Tell me more about chakras, Maya.', mood: 5, next: 2 }
-                ]},
-                { speaker: 'Maya', text: '*applies essential oil with slow, circular motions* Opening yourself to healing is the bravest thing one can do. The body remembers what the mind tries to forget. Let it release...', choices: [
-                    { text: '*Feel a wave of emotion and relaxation*', relationship: 8, next: 'resume' }
-                ]},
-                { speaker: 'Maya', text: '*her eyes light up* There are seven main chakras. Right now, I\'m working on your Manipura - your solar plexus. It controls confidence and personal power. *deep massage* You deserve to feel powerful.', choices: [
-                    { text: 'Your knowledge is incredible, Maya.', relationship: 6, next: 'resume' }
-                ]}
-            ],
-            deep: [
-                { speaker: 'Maya', text: '*the room fills with soft music* I want to share something sacred with you. In Bali, I was trained by my grandmother - a Balian, a traditional healer.', choices: [
-                    { text: 'That\'s a beautiful heritage.', relationship: 10, next: 1 },
-                    { text: 'Is that why your touch feels so different?', relationship: 12, next: 2 }
-                ]},
-                { speaker: 'Maya', text: '*her voice becomes soft* She told me: "Maya, your hands are bridges between worlds. Through them, you connect people to their true selves." When I touch you... I feel that connection.', choices: [
-                    { text: 'I feel it too, Maya. There\'s something special here.', relationship: 18, next: 'end' }
-                ]},
-                { speaker: 'Maya', text: '*places her hand over yours* She said I would know when I found a kindred spirit. Someone whose energy harmonizes with mine. *looks into your eyes* I believe I have found that person.', choices: [
-                    { text: '*Hold her gaze* I think I feel the same way.', relationship: 20, next: 'end' }
-                ]}
-            ]
-        }
-    }
-];
-
-// Three.js Setup
-function initThreeJS() {
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.8;
-    clock = new THREE.Clock();
-
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-}
-
-// ==========================================
-// SCENE BUILDERS
-// ==========================================
-
-let currentScene = null;
-let animatedObjects = [];
-let particleSystems = [];
-
-function clearScene() {
-    while(scene.children.length > 0) {
-        const obj = scene.children[0];
-        scene.remove(obj);
-        if(obj.geometry) obj.geometry.dispose();
-        if(obj.material) {
-            if(Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
-            else obj.material.dispose();
-        }
-    }
-    animatedObjects = [];
-    particleSystems = [];
-}
-
-function buildLobbyScene() {
-    clearScene();
-    currentScene = 'lobby';
-
-    // Ambient light
-    const ambient = new THREE.AmbientLight(0xffd5a0, 0.4);
-    scene.add(ambient);
-
-    // Warm point lights
-    const light1 = new THREE.PointLight(0xffa040, 1.5, 20);
-    light1.position.set(-3, 4, 2);
-    light1.castShadow = true;
-    scene.add(light1);
-
-    const light2 = new THREE.PointLight(0xff8060, 1, 15);
-    light2.position.set(3, 3, -1);
-    scene.add(light2);
-
-    const light3 = new THREE.PointLight(0xffc880, 0.8, 12);
-    light3.position.set(0, 2, 5);
-    scene.add(light3);
-
-    // Floor
-    const floorGeo = new THREE.PlaneGeometry(20, 20);
-    const floorMat = new THREE.MeshStandardMaterial({
-        color: 0x2a1a0e,
-        roughness: 0.8,
-        metalness: 0.1
-    });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
-
-    // Walls
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0x3d2b1f, roughness: 0.9 });
-    
-    // Back wall
-    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 8), wallMat);
-    backWall.position.set(0, 4, -5);
-    scene.add(backWall);
-
-    // Side walls
-    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(12, 8), wallMat);
-    leftWall.position.set(-6, 4, 0);
-    leftWall.rotation.y = Math.PI / 2;
-    scene.add(leftWall);
-
-    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(12, 8), wallMat);
-    rightWall.position.set(6, 4, 0);
-    rightWall.rotation.y = -Math.PI / 2;
-    scene.add(rightWall);
-
-    // Reception desk
-    const deskGeo = new THREE.BoxGeometry(3, 1.2, 1);
-    const deskMat = new THREE.MeshStandardMaterial({ color: 0x4a3520, roughness: 0.6 });
-    const desk = new THREE.Mesh(deskGeo, deskMat);
-    desk.position.set(0, 0.6, -3);
-    desk.castShadow = true;
-    scene.add(desk);
-
-    // Desk top
-    const deskTop = new THREE.Mesh(
-        new THREE.BoxGeometry(3.2, 0.08, 1.2),
-        new THREE.MeshStandardMaterial({ color: 0x5d4430, roughness: 0.4 })
-    );
-    deskTop.position.set(0, 1.22, -3);
-    scene.add(deskTop);
-
-    // Vase on desk
-    const vaseGeo = new THREE.CylinderGeometry(0.08, 0.12, 0.4, 8);
-    const vaseMat = new THREE.MeshStandardMaterial({ color: 0x8b4513, roughness: 0.3 });
-    const vase = new THREE.Mesh(vaseGeo, vaseMat);
-    vase.position.set(0.8, 1.45, -3);
-    scene.add(vase);
-
-    // Flowers
-    for(let i = 0; i < 5; i++) {
-        const flowerGeo = new THREE.SphereGeometry(0.06, 6, 6);
-        const flowerMat = new THREE.MeshStandardMaterial({
-            color: [0xff69b4, 0xff1493, 0xffa07a, 0xffb6c1, 0xff6347][i],
-            emissive: [0xff69b4, 0xff1493, 0xffa07a, 0xffb6c1, 0xff6347][i],
-            emissiveIntensity: 0.2
-        });
-        const flower = new THREE.Mesh(flowerGeo, flowerMat);
-        flower.position.set(
-            0.8 + Math.cos(i * 1.2) * 0.1,
-            1.7 + Math.sin(i * 0.8) * 0.05,
-            -3 + Math.sin(i * 1.2) * 0.1
-        );
-        scene.add(flower);
-        animatedObjects.push({
-            mesh: flower,
-            type: 'bob',
-            speed: 1 + Math.random(),
-            offset: i * 0.5,
-            amplitude: 0.03
-        });
-    }
-
-    // Candles
-    for(let i = 0; i < 4; i++) {
-        const candleGroup = new THREE.Group();
-        const candleBody = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.04, 0.04, 0.25, 8),
-            new THREE.MeshStandardMaterial({ color: 0xfff8dc })
-        );
-        candleBody.position.y = 0.125;
-        candleGroup.add(candleBody);
-
-        const flame = new THREE.Mesh(
-            new THREE.SphereGeometry(0.03, 8, 8),
-            new THREE.MeshStandardMaterial({
-                color: 0xffa500,
-                emissive: 0xff8c00,
-                emissiveIntensity: 2
-            })
-        );
-        flame.position.y = 0.28;
-        flame.scale.y = 1.5;
-        candleGroup.add(flame);
-
-        const flameLight = new THREE.PointLight(0xff8c00, 0.3, 3);
-        flameLight.position.y = 0.3;
-        candleGroup.add(flameLight);
-
-        const positions = [
-            [-2, 1.25, -3], [2, 1.25, -3],
-            [-4, 0, -2], [4, 0, -2]
+        const MODEL_GROUPS = [
+            { providerName: "OpenRouter", providerKey: "openrouter", models: [
+                { id: "deepseek/deepseek-chat", name: "DeepSeek V3", desc: "Advanced Reasoning" },
+                { id: "deepseek/deepseek-coder", name: "DeepSeek Coder", desc: "Coding Specialist" },
+                { id: "meta-llama/llama-3-8b-instruct:free", name: "Llama 3 8B (Free)", desc: "Fast & Free Text" }
+            ]},
+            { providerName: "Groq (Ultra-Fast)", providerKey: "groq", models: [
+                { id: "llama3-70b-8192", name: "Llama 3 70B", desc: "Powerful & Fast" },
+                { id: "llama3-8b-8192", name: "Llama 3 8B", desc: "Lightning Fast" }
+            ]},
+            { providerName: "Vision AI", providerKey: "hf", models: [
+                { id: "flux-schnell", name: "FLUX.1 Schnell", desc: "Cinematic Image Gen", isImage: true }
+            ]}
         ];
-        candleGroup.position.set(...positions[i]);
-        scene.add(candleGroup);
 
-        animatedObjects.push({
-            mesh: flame,
-            light: flameLight,
-            type: 'flicker',
-            speed: 3 + Math.random() * 2,
-            offset: i
-        });
-    }
+        function App() {
+            // App & Global State
+            const [view, setView] = useState('chat'); // 'chat' or 'studio'
+            const [sidebarOpen, setSidebarOpen] = useState(false);
+            const [settingsOpen, setSettingsOpen] = useState(false);
+            const [modelMenuOpen, setModelMenuOpen] = useState(false);
+            const [activeModel, setActiveModel] = useState({ ...MODEL_GROUPS[0].models[0], providerKey: MODEL_GROUPS[0].providerKey });
+            
+            // Chat State
+            const [messages, setMessages] = useState([]);
+            const [input, setInput] = useState('');
+            const [isGenerating, setIsGenerating] = useState(false);
 
-    // Sofas/benches
-    for(let side = -1; side <= 1; side += 2) {
-        const sofaBase = new THREE.Mesh(
-            new THREE.BoxGeometry(1.5, 0.5, 0.8),
-            new THREE.MeshStandardMaterial({ color: 0x6b3a2a, roughness: 0.7 })
-        );
-        sofaBase.position.set(side * 3.5, 0.25, 1);
-        sofaBase.castShadow = true;
-        scene.add(sofaBase);
-
-        const sofaBack = new THREE.Mesh(
-            new THREE.BoxGeometry(1.5, 0.8, 0.15),
-            new THREE.MeshStandardMaterial({ color: 0x6b3a2a, roughness: 0.7 })
-        );
-        sofaBack.position.set(side * 3.5, 0.65, 0.6);
-        scene.add(sofaBack);
-
-        // Cushion
-        const cushion = new THREE.Mesh(
-            new THREE.BoxGeometry(1.3, 0.12, 0.6),
-            new THREE.MeshStandardMaterial({ color: 0x8b0000, roughness: 0.9 })
-        );
-        cushion.position.set(side * 3.5, 0.52, 1);
-        scene.add(cushion);
-    }
-
-    // Plants
-    for(let i = 0; i < 3; i++) {
-        const potGeo = new THREE.CylinderGeometry(0.2, 0.15, 0.3, 8);
-        const potMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
-        const pot = new THREE.Mesh(potGeo, potMat);
-        const plantPositions = [[-5, 0.15, -4], [5, 0.15, -4], [0, 0.15, 4]];
-        pot.position.set(...plantPositions[i]);
-        scene.add(pot);
-
-        // Plant leaves
-        for(let j = 0; j < 6; j++) {
-            const leaf = new THREE.Mesh(
-                new THREE.PlaneGeometry(0.3, 0.5),
-                new THREE.MeshStandardMaterial({ 
-                    color: 0x228b22, 
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    opacity: 0.9
-                })
-            );
-            leaf.position.set(
-                plantPositions[i][0] + Math.cos(j * 1.05) * 0.15,
-                0.5 + j * 0.08,
-                plantPositions[i][2] + Math.sin(j * 1.05) * 0.15
-            );
-            leaf.rotation.y = j * 0.5;
-            leaf.rotation.z = 0.3 - Math.random() * 0.6;
-            scene.add(leaf);
-            animatedObjects.push({
-                mesh: leaf,
-                type: 'sway',
-                speed: 0.5 + Math.random() * 0.5,
-                offset: j,
-                amplitude: 0.05
+            // Studio State
+            const [studioTab, setStudioTab] = useState('preview');
+            const [studioType, setStudioType] = useState('html');
+            const [studioCode, setStudioCode] = useState('<!-- Describe what you want to build in the edit bar below -->\n<div style="padding: 20px; font-family: sans-serif; text-align: center; color: #333;">\n  <h2>Welcome to Vip Code Studio</h2>\n  <p>Tell the AI what to build!</p>\n</div>');
+            const [studioInput, setStudioInput] = useState('');
+            const [isStudioGenerating, setIsStudioGenerating] = useState(false);
+            
+            const [apiKeys, setApiKeys] = useState(() => {
+                const saved = localStorage.getItem('vipul_api_keys');
+                return saved ? JSON.parse(saved) : { groq: '', openrouter: '', hf: '' };
             });
-        }
-    }
 
-    // Floating particles (dust/ambiance)
-    const particleGeo = new THREE.BufferGeometry();
-    const particlePositions = [];
-    for(let i = 0; i < 100; i++) {
-        particlePositions.push(
-            (Math.random() - 0.5) * 12,
-            Math.random() * 6,
-            (Math.random() - 0.5) * 10
-        );
-    }
-    particleGeo.setAttribute('position', new THREE.Float32BufferAttribute(particlePositions, 3));
-    const particleMat = new THREE.PointsMaterial({
-        color: 0xffd700,
-        size: 0.03,
-        transparent: true,
-        opacity: 0.4
-    });
-    const particles = new THREE.Points(particleGeo, particleMat);
-    scene.add(particles);
-    particleSystems.push(particles);
-
-    // Camera position for lobby
-    camera.position.set(0, 3, 6);
-    camera.lookAt(0, 1, -2);
-}
-
-function buildMassageRoom() {
-    clearScene();
-    currentScene = 'massage';
-
-    const therapist = gameState.currentTherapist;
-
-    // Ambient
-    const ambient = new THREE.AmbientLight(0xffe0c0, 0.25);
-    scene.add(ambient);
-
-    // Warm dim lights
-    const mainLight = new THREE.PointLight(therapist.color, 0.6, 15);
-    mainLight.position.set(0, 5, 0);
-    mainLight.castShadow = true;
-    scene.add(mainLight);
-
-    const sideLight1 = new THREE.PointLight(0xffa060, 0.8, 10);
-    sideLight1.position.set(-3, 2, 2);
-    scene.add(sideLight1);
-
-    const sideLight2 = new THREE.PointLight(0xffa060, 0.8, 10);
-    sideLight2.position.set(3, 2, 2);
-    scene.add(sideLight2);
-
-    // Floor
-    const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(12, 12),
-        new THREE.MeshStandardMaterial({ color: 0x1a120a, roughness: 0.9 })
-    );
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
-
-    // Walls
-    const wallColor = 0x2d1f14;
-    const wallMat = new THREE.MeshStandardMaterial({ color: wallColor, roughness: 0.9 });
-
-    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(12, 6), wallMat);
-    backWall.position.set(0, 3, -4);
-    scene.add(backWall);
-
-    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(10, 6), wallMat);
-    leftWall.position.set(-5, 3, 0);
-    leftWall.rotation.y = Math.PI / 2;
-    scene.add(leftWall);
-
-    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(10, 6), wallMat);
-    rightWall.position.set(5, 3, 0);
-    rightWall.rotation.y = -Math.PI / 2;
-    scene.add(rightWall);
-
-    // Massage table
-    const tableGroup = new THREE.Group();
-
-    // Table top
-    const tableTop = new THREE.Mesh(
-        new THREE.BoxGeometry(2, 0.15, 4),
-        new THREE.MeshStandardMaterial({ color: 0xf5f5dc, roughness: 0.8 })
-    );
-    tableTop.position.y = 0.9;
-    tableTop.castShadow = true;
-    tableGroup.add(tableTop);
-
-    // Padding
-    const padding = new THREE.Mesh(
-        new THREE.BoxGeometry(1.8, 0.1, 3.8),
-        new THREE.MeshStandardMaterial({ color: 0xfff8f0, roughness: 0.95 })
-    );
-    padding.position.y = 1.0;
-    tableGroup.add(padding);
-
-    // Table legs
-    for(let x = -1; x <= 1; x += 2) {
-        for(let z = -1; z <= 1; z += 2) {
-            const leg = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.05, 0.05, 0.85, 8),
-                new THREE.MeshStandardMaterial({ color: 0x4a3520 })
-            );
-            leg.position.set(x * 0.8, 0.425, z * 1.7);
-            tableGroup.add(leg);
-        }
-    }
-
-    // Pillow
-    const pillow = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, 0.12, 0.4),
-        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 })
-    );
-    pillow.position.set(0, 1.08, -1.6);
-    tableGroup.add(pillow);
-
-    // Sheet/towel
-    const sheet = new THREE.Mesh(
-        new THREE.PlaneGeometry(1.6, 2.5),
-        new THREE.MeshStandardMaterial({ 
-            color: 0xffffff, 
-            side: THREE.DoubleSide,
-            roughness: 0.95
-        })
-    );
-    sheet.position.set(0, 1.06, 0.2);
-    sheet.rotation.x = -Math.PI / 2;
-    tableGroup.add(sheet);
-
-    tableGroup.position.set(0, 0, 0);
-    scene.add(tableGroup);
-
-    // Person on table (simple figure)
-    const personGroup = new THREE.Group();
-
-    // Body
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0xfdd5b1, roughness: 0.8 });
-
-    // Torso
-    const torso = new THREE.Mesh(
-        new THREE.BoxGeometry(0.6, 0.2, 1.2),
-        bodyMat
-    );
-    torso.position.set(0, 1.15, 0);
-    personGroup.add(torso);
-
-    // Head
-    const head = new THREE.Mesh(
-        new THREE.SphereGeometry(0.15, 12, 12),
-        bodyMat
-    );
-    head.position.set(0, 1.15, -1.5);
-    personGroup.add(head);
-
-    // Arms
-    for(let side = -1; side <= 1; side += 2) {
-        const arm = new THREE.Mesh(
-            new THREE.BoxGeometry(0.12, 0.12, 0.7),
-            bodyMat
-        );
-        arm.position.set(side * 0.45, 1.1, -0.5);
-        arm.rotation.z = side * 0.3;
-        personGroup.add(arm);
-    }
-
-    // Legs
-    for(let side = -1; side <= 1; side += 2) {
-        const leg = new THREE.Mesh(
-            new THREE.BoxGeometry(0.15, 0.15, 1.0),
-            bodyMat
-        );
-        leg.position.set(side * 0.18, 1.12, 1.0);
-        personGroup.add(leg);
-    }
-
-    scene.add(personGroup);
-
-    // Therapist figure
-    const therapistGroup = new THREE.Group();
-    const therapistMat = new THREE.MeshStandardMaterial({ color: therapist.skinColor, roughness: 0.7 });
-
-    // Therapist body
-    const tBody = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.2, 0.25, 1.0, 8),
-        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 })
-    );
-    tBody.position.y = 0.8;
-    therapistGroup.add(tBody);
-
-    // Therapist head
-    const tHead = new THREE.Mesh(
-        new THREE.SphereGeometry(0.18, 12, 12),
-        therapistMat
-    );
-    tHead.position.y = 1.5;
-    therapistGroup.add(tHead);
-
-    // Hair
-    const tHair = new THREE.Mesh(
-        new THREE.SphereGeometry(0.2, 12, 12),
-        new THREE.MeshStandardMaterial({ color: therapist.hairColor })
-    );
-    tHair.position.set(0, 1.55, -0.03);
-    tHair.scale.set(1, 1.1, 1);
-    therapistGroup.add(tHair);
-
-    // Arms
-    for(let side = -1; side <= 1; side += 2) {
-        const tArm = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.05, 0.05, 0.6, 8),
-            therapistMat
-        );
-        tArm.position.set(side * 0.3, 1.1, 0.2);
-        tArm.rotation.z = side * 0.8;
-        tArm.rotation.x = 0.5;
-        therapistGroup.add(tArm);
-
-        // Hands
-        const tHand = new THREE.Mesh(
-            new THREE.SphereGeometry(0.06, 8, 8),
-            therapistMat
-        );
-        tHand.position.set(side * 0.5, 0.9, 0.4);
-        therapistGroup.add(tHand);
-
-        animatedObjects.push({
-            mesh: tHand,
-            type: 'massage_hand',
-            speed: 2,
-            offset: side,
-            baseX: side * 0.5,
-            baseY: 0.9,
-            baseZ: 0.4
-        });
-
-        animatedObjects.push({
-            mesh: tArm,
-            type: 'massage_arm',
-            speed: 2,
-            offset: side,
-            baseRotZ: side * 0.8
-        });
-    }
-
-    // Legs
-    for(let side = -1; side <= 1; side += 2) {
-        const tLeg = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.07, 0.07, 0.6, 8),
-            new THREE.MeshStandardMaterial({ color: 0x2a2a2a })
-        );
-        tLeg.position.set(side * 0.15, 0.3, 0);
-        therapistGroup.add(tLeg);
-    }
-
-    therapistGroup.position.set(1.3, 0, 0);
-    scene.add(therapistGroup);
-
-    animatedObjects.push({
-        mesh: therapistGroup,
-        type: 'therapist_sway',
-        speed: 0.8,
-        offset: 0
-    });
-
-    // Candles in room
-    for(let i = 0; i < 6; i++) {
-        const candleGroup = new THREE.Group();
-        const candle = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.03, 0.03, 0.2, 8),
-            new THREE.MeshStandardMaterial({ color: 0xfff8dc })
-        );
-        candle.position.y = 0.1;
-        candleGroup.add(candle);
-
-        const flame = new THREE.Mesh(
-            new THREE.SphereGeometry(0.025, 6, 6),
-            new THREE.MeshStandardMaterial({
-                color: 0xffa500,
-                emissive: 0xff6600,
-                emissiveIntensity: 2
-            })
-        );
-        flame.position.y = 0.22;
-        flame.scale.y = 1.5;
-        candleGroup.add(flame);
-
-        const fLight = new THREE.PointLight(0xff8c00, 0.2, 3);
-        fLight.position.y = 0.25;
-        candleGroup.add(fLight);
-
-        const cPositions = [
-            [-3, 0, -3], [3, 0, -3], [-3, 0, 3],
-            [3, 0, 3], [-2, 0, 0], [2, 0, -2]
-        ];
-        candleGroup.position.set(...cPositions[i]);
-        scene.add(candleGroup);
-
-        animatedObjects.push({
-            mesh: flame,
-            light: fLight,
-            type: 'flicker',
-            speed: 4 + Math.random() * 3,
-            offset: i * 0.7
-        });
-    }
-
-    // Oil bottles on side table
-    const sideTable = new THREE.Mesh(
-        new THREE.BoxGeometry(0.6, 0.7, 0.6),
-        new THREE.MeshStandardMaterial({ color: 0x4a3520 })
-    );
-    sideTable.position.set(-2.5, 0.35, -1);
-    scene.add(sideTable);
-
-    const bottleColors = [0x4169e1, 0x32cd32, 0x9370db];
-    for(let i = 0; i < 3; i++) {
-        const bottle = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.04, 0.05, 0.2, 8),
-            new THREE.MeshStandardMaterial({ 
-                color: bottleColors[i], 
-                transparent: true, 
-                opacity: 0.7,
-                roughness: 0.2
-            })
-        );
-        bottle.position.set(-2.5 + (i-1) * 0.15, 0.8, -1);
-        scene.add(bottle);
-    }
-
-    // Hot stones (if applicable)
-    if(therapist.id === 'maya') {
-        for(let i = 0; i < 5; i++) {
-            const stone = new THREE.Mesh(
-                new THREE.SphereGeometry(0.08, 8, 6),
-                new THREE.MeshStandardMaterial({
-                    color: 0x2f2f2f,
-                    emissive: 0x331100,
-                    emissiveIntensity: 0.5,
-                    roughness: 0.4
-                })
-            );
-            stone.scale.y = 0.5;
-            stone.position.set(-2.3 + i * 0.12, 0.78, -0.7);
-            scene.add(stone);
-        }
-    }
-
-    // Ambient particles
-    const pGeo = new THREE.BufferGeometry();
-    const pPositions = [];
-    for(let i = 0; i < 60; i++) {
-        pPositions.push(
-            (Math.random() - 0.5) * 8,
-            Math.random() * 4,
-            (Math.random() - 0.5) * 8
-        );
-    }
-    pGeo.setAttribute('position', new THREE.Float32BufferAttribute(pPositions, 3));
-    const pMat = new THREE.PointsMaterial({
-        color: therapist.color,
-        size: 0.02,
-        transparent: true,
-        opacity: 0.3
-    });
-    const pSystem = new THREE.Points(pGeo, pMat);
-    scene.add(pSystem);
-    particleSystems.push(pSystem);
-
-    // Camera
-    camera.position.set(2, 3, 4);
-    camera.lookAt(0, 1, 0);
-}
-
-// ==========================================
-// ANIMATION LOOP
-// ==========================================
-
-function animate() {
-    requestAnimationFrame(animate);
-    const time = clock.getElapsedTime();
-    const delta = clock.getDelta();
-
-    // Animate objects
-    animatedObjects.forEach(obj => {
-        switch(obj.type) {
-            case 'bob':
-                obj.mesh.position.y += Math.sin(time * obj.speed + obj.offset) * 0.0005;
-                break;
-            case 'sway':
-                obj.mesh.rotation.z = Math.sin(time * obj.speed + obj.offset) * obj.amplitude;
-                break;
-            case 'flicker':
-                const flicker = 0.8 + Math.sin(time * obj.speed + obj.offset) * 0.2 + Math.sin(time * obj.speed * 2.7) * 0.1;
-                obj.mesh.scale.y = 1.5 * flicker;
-                obj.mesh.scale.x = flicker;
-                if(obj.light) obj.light.intensity = 0.2 * flicker;
-                break;
-            case 'massage_hand':
-                obj.mesh.position.x = obj.baseX + Math.sin(time * obj.speed) * 0.1;
-                obj.mesh.position.z = obj.baseZ + Math.cos(time * obj.speed * 1.3) * 0.15;
-                obj.mesh.position.y = obj.baseY + Math.sin(time * obj.speed * 0.7) * 0.03;
-                break;
-            case 'massage_arm':
-                obj.mesh.rotation.z = obj.baseRotZ + Math.sin(time * obj.speed) * 0.1;
-                obj.mesh.rotation.x = 0.5 + Math.sin(time * obj.speed * 1.3) * 0.1;
-                break;
-            case 'therapist_sway':
-                obj.mesh.position.x = 1.3 + Math.sin(time * obj.speed) * 0.05;
-                obj.mesh.rotation.y = Math.sin(time * obj.speed * 0.5) * 0.05;
-                break;
-        }
-    });
-
-    // Animate particles
-    particleSystems.forEach(ps => {
-        const positions = ps.geometry.attributes.position.array;
-        for(let i = 1; i < positions.length; i += 3) {
-            positions[i] += 0.002;
-            if(positions[i] > 5) positions[i] = 0;
-        }
-        ps.geometry.attributes.position.needsUpdate = true;
-    });
-
-    // Gentle camera movement
-    if(currentScene === 'lobby') {
-        camera.position.x = Math.sin(time * 0.1) * 0.3;
-        camera.position.y = 3 + Math.sin(time * 0.15) * 0.1;
-        camera.lookAt(0, 1, -2);
-    } else if(currentScene === 'massage') {
-        camera.position.x = 2 + Math.sin(time * 0.2) * 0.2;
-        camera.position.y = 3 + Math.sin(time * 0.15) * 0.1;
-        camera.lookAt(0, 1, 0);
-    }
-
-    renderer.render(scene, camera);
-}
-
-// ==========================================
-// GAME LOGIC
-// ==========================================
-
-function startGame() {
-    document.getElementById('title-screen').style.display = 'none';
-    showChapter(1, 'A New Beginning', () => {
-        goToLobby();
-        showDialogue('Receptionist', 'Welcome to Serenity Spa! ✨ I\'m so glad you decided to visit us. We have three wonderful therapists available today. Each one has their own unique style and story. Take your time choosing!', [
-            { text: 'Thank you! I\'m excited to be here.', callback: () => {
-                hideDialogue();
-                showNotification('💡 Use the buttons below to navigate the spa!');
-            }}
-        ]);
-    });
-}
-
-function showChapter(num, title, callback) {
-    const screen = document.getElementById('chapter-screen');
-    document.getElementById('chapter-label').textContent = `CHAPTER ${num}`;
-    document.getElementById('chapter-title').textContent = title;
-    screen.style.display = 'flex';
-
-    setTimeout(() => {
-        screen.style.display = 'none';
-        if(callback) callback();
-    }, 3000);
-}
-
-function goToLobby() {
-    gameState.phase = 'lobby';
-    buildLobbyScene();
-
-    document.getElementById('therapist-select').style.display = 'none';
-    document.getElementById('massage-ui').style.display = 'none';
-    document.getElementById('session-timer').style.display = 'none';
-    document.getElementById('back-btn').style.display = 'none';
-    document.getElementById('hud').style.display = 'flex';
-    document.getElementById('lobby-nav').style.display = 'flex';
-    document.getElementById('story-progress').style.display = 'none';
-
-    updateHUD();
-}
-
-function showTherapistSelect() {
-    document.getElementById('lobby-nav').style.display = 'none';
-    document.getElementById('therapist-select').style.display = 'flex';
-
-    const grid = document.getElementById('therapist-grid');
-    grid.innerHTML = '';
-
-    therapists.forEach(t => {
-        const rel = gameState.relationships[t.id] || 0;
-        const relStars = '❤️'.repeat(Math.min(Math.floor(rel / 20), 5)) || '🤍';
-
-        const card = document.createElement('div');
-        card.className = 'therapist-card';
-        card.innerHTML = `
-            <div class="therapist-avatar" style="background: radial-gradient(circle, ${hexToCSS(t.color)}, ${hexToCSS(t.color)}33);">
-                <span>${t.emoji}</span>
-            </div>
-            <h3>${t.name}</h3>
-            <div class="specialty">${t.specialty}</div>
-            <div class="desc">${t.desc}</div>
-            <div style="color:#b89a7a; font-size:0.85em; margin-top:8px;">Bond: ${relStars}</div>
-            <div class="price">${t.price} Gold</div>
-        `;
-        card.onclick = () => selectTherapist(t);
-        grid.appendChild(card);
-    });
-}
-
-function selectTherapist(therapist) {
-    if(gameState.coins < therapist.price) {
-        showNotification('❌ Not enough gold! Rest to earn more.');
-        return;
-    }
-
-    gameState.coins -= therapist.price;
-    gameState.currentTherapist = therapist;
-
-    document.getElementById('therapist-select').style.display = 'none';
-
-    // Initialize relationship if needed
-    if(!gameState.relationships[therapist.id]) {
-        gameState.relationships[therapist.id] = 0;
-    }
-    if(!gameState.storyProgress[therapist.id]) {
-        gameState.storyProgress[therapist.id] = 'intro';
-    }
-
-    buildMassageRoom();
-
-    document.getElementById('hud').style.display = 'flex';
-    document.getElementById('lobby-nav').style.display = 'none';
-
-    // Start story
-    const storyPhase = gameState.storyProgress[therapist.id];
-    startStory(therapist, storyPhase);
-}
-
-function startStory(therapist, phase) {
-    const story = therapist.stories[phase];
-    if(!story || story.length === 0) {
-        startSession();
-        return;
-    }
-
-    playStoryNode(therapist, story, 0);
-}
-
-function playStoryNode(therapist, story, index) {
-    if(index >= story.length) {
-        startSession();
-        return;
-    }
-
-    const node = story[index];
-    const choices = node.choices.map(c => ({
-        text: c.text,
-        callback: () => {
-            if(c.mood) gameState.stats.mood = Math.min(100, gameState.stats.mood + c.mood);
-            if(c.relationship) {
-                gameState.relationships[therapist.id] = (gameState.relationships[therapist.id] || 0) + c.relationship;
-                spawnEmote('❤️');
-            }
-
-            if(c.next === 'start_session') {
-                hideDialogue();
-                startSession();
-            } else if(c.next === 'resume') {
-                hideDialogue();
-                showNotification('💆 Massage continues...');
-            } else if(c.next === 'end') {
-                hideDialogue();
-                advanceStory(therapist);
-                showNotification('💖 Your bond with ' + therapist.name + ' has deepened!');
-            } else if(typeof c.next === 'number') {
-                playStoryNode(therapist, story, c.next);
-            }
-            updateHUD();
-        }
-    }));
-
-    showDialogue(node.speaker, node.text, choices);
-}
-
-function advanceStory(therapist) {
-    const phases = ['intro', 'session_talk', 'deep'];
-    const currentPhase = gameState.storyProgress[therapist.id];
-    const currentIndex = phases.indexOf(currentPhase);
-
-    if(currentIndex < phases.length - 1) {
-        gameState.storyProgress[therapist.id] = phases[currentIndex + 1];
-        addJournalEntry(`Grew closer to ${therapist.name}. Our conversations are becoming deeper...`);
-    }
-
-    // Check for chapter progression
-    const totalProgress = Object.values(gameState.storyProgress).filter(p => p !== 'intro').length;
-    if(totalProgress >= 2 && gameState.currentChapter === 1) {
-        gameState.currentChapter = 2;
-        setTimeout(() => showChapter(2, 'Growing Bonds'), 2000);
-    }
-    if(totalProgress >= 4 && gameState.currentChapter === 2) {
-        gameState.currentChapter = 3;
-        setTimeout(() => showChapter(3, 'Heart to Heart'), 2000);
-    }
-}
-
-let sessionTimer = null;
-
-function startSession() {
-    gameState.phase = 'session';
-    gameState.sessionTime = 120; // 2 minutes
-
-    document.getElementById('massage-ui').style.display = 'flex';
-    document.getElementById('session-timer').style.display = 'block';
-    document.getElementById('back-btn').style.display = 'block';
-    document.getElementById('story-progress').style.display = 'block';
-
-    const rel = gameState.relationships[gameState.currentTherapist.id] || 0;
-    document.getElementById('story-progress').textContent = `Bond: ${rel} | ${gameState.currentTherapist.name}`;
-
-    updateTimer();
-
-    sessionTimer = setInterval(() => {
-        gameState.sessionTime--;
-        updateTimer();
-
-        // Passive stat gains
-        gameState.stats.relaxation = Math.min(100, gameState.stats.relaxation + 0.15);
-        gameState.stats.energy = Math.max(0, gameState.stats.energy - 0.05);
-        updateHUD();
-
-        if(gameState.sessionTime <= 0) {
-            endSession();
-        }
-    }, 1000);
-
-    showNotification(`✨ Session with ${gameState.currentTherapist.name} has begun!`);
-}
-
-function updateTimer() {
-    const mins = Math.floor(gameState.sessionTime / 60);
-    const secs = gameState.sessionTime % 60;
-    document.getElementById('session-timer').textContent = `⏱ ${mins}:${secs.toString().padStart(2, '0')}`;
-}
-
-function doMassage(type) {
-    if(gameState.phase !== 'session') return;
-
-    const bonuses = {
-        swedish: { relaxation: 8, satisfaction: 5, mood: 3 },
-        deep: { relaxation: 5, satisfaction: 8, mood: 2 },
-        hot: { relaxation: 10, satisfaction: 7, mood: 5 },
-        aroma: { relaxation: 7, satisfaction: 6, mood: 8 },
-        shiatsu: { relaxation: 6, satisfaction: 9, mood: 4 }
-    };
-
-    const bonus = bonuses[type];
-    const therapist = gameState.currentTherapist;
-
-    // Apply bonuses (some therapists are better at certain types)
-    let multiplier = 1;
-    if(therapist.id === 'sakura' && type === 'shiatsu') multiplier = 1.5;
-    if(therapist.id === 'elena' && (type === 'swedish' || type === 'deep')) multiplier = 1.5;
-    if(therapist.id === 'maya' && (type === 'hot' || type === 'aroma')) multiplier = 1.5;
-
-    gameState.stats.relaxation = Math.min(100, gameState.stats.relaxation + bonus.relaxation * multiplier);
-    gameState.stats.satisfaction = Math.min(100, gameState.stats.satisfaction + bonus.satisfaction * multiplier);
-    gameState.stats.mood = Math.min(100, gameState.stats.mood + bonus.mood * multiplier);
-    gameState.stats.energy = Math.max(0, gameState.stats.energy - 2);
-
-    // Relationship boost
-    gameState.relationships[therapist.id] = (gameState.relationships[therapist.id] || 0) + (multiplier > 1 ? 3 : 1);
-
-    const messages = {
-        swedish: ['Smooth, flowing strokes ease your tension...', 'Long, rhythmic movements calm your mind...'],
-        deep: ['Strong pressure reaches deep into your muscles...', 'Firm kneading releases stubborn knots...'],
-        hot: ['Warm stones melt away your stress...', 'The heat penetrates deep into your muscles...'],
-        aroma: ['Lavender and eucalyptus fill the air...', 'Essential oils work their magic on your skin...'],
-        shiatsu: ['Precise pressure points activate healing energy...', 'Ancient techniques restore your chi flow...']
-    };
-
-    const msg = messages[type][Math.floor(Math.random() * messages[type].length)];
-    showNotification(`💆 ${msg}`);
-
-    if(multiplier > 1) {
-        spawnEmote('⭐');
-        setTimeout(() => showNotification(`✨ ${therapist.name}'s specialty! Extra effective!`), 1500);
-    }
-
-    // Highlight active button
-    document.querySelectorAll('.massage-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-
-    updateHUD();
-
-    // Random therapist comments
-    if(Math.random() < 0.3) {
-        const comments = {
-            sakura: ['*hums a gentle melody*', 'Breathe deeply... let it all go...', 'Your energy is flowing beautifully now...'],
-            elena: ['There we go, that knot is releasing!', 'You\'re doing great, just relax!', '*works with confident, strong strokes*'],
-            maya: ['The elements are in harmony...', '*whispers a blessing*', 'Your chakras are aligning beautifully...']
-        };
-        const therapistComments = comments[therapist.id];
-        setTimeout(() => {
-            showDialogue(therapist.name, therapistComments[Math.floor(Math.random() * therapistComments.length)], [
-                { text: '*Enjoy the moment*', callback: hideDialogue }
-            ]);
-        }, 2000);
-    }
-}
-
-function talkDuring() {
-    if(gameState.phase !== 'session') return;
-
-    const therapist = gameState.currentTherapist;
-    const rel = gameState.relationships[therapist.id] || 0;
-
-    // Check if deep story is available
-    if(rel >= 30 && gameState.storyProgress[therapist.id] !== 'deep') {
-        gameState.storyProgress[therapist.id] = 'deep';
-        startStory(therapist, 'deep');
-        return;
-    }
-
-    if(gameState.storyProgress[therapist.id] === 'intro') {
-        gameState.storyProgress[therapist.id] = 'session_talk';
-    }
-
-    const phase = gameState.storyProgress[therapist.id];
-    const story = therapist.stories[phase];
-
-    if(story) {
-        playStoryNode(therapist, story, 0);
-    } else {
-        // Random conversation
-        const randomTalks = {
-            sakura: [
-                { speaker: 'Sakura', text: 'Did you know that in Japan, there are over 200 types of cherry blossom trees? Each one is unique, like each person who visits me.', choices: [
-                    { text: 'That\'s fascinating!', relationship: 2, callback: () => { hideDialogue(); updateHUD(); } }
-                ]},
-                { speaker: 'Sakura', text: '*smiles* You seem more relaxed today than when you first came. It makes me happy to see your progress.', choices: [
-                    { text: 'It\'s all thanks to you, Sakura.', relationship: 3, callback: () => { hideDialogue(); spawnEmote('🌸'); updateHUD(); } }
-                ]}
-            ],
-            elena: [
-                { speaker: 'Elena', text: 'You know what I miss about Sweden? The saunas. Nothing beats a good sauna after a long day. We should totally go sometime— I mean, uh, you should try one!', choices: [
-                    { text: '*laugh* That sounds like a plan!', relationship: 3, callback: () => { hideDialogue(); spawnEmote('😊'); updateHUD(); } }
-                ]},
-                { speaker: 'Elena', text: 'I\'ve been thinking about entering a massage therapy competition. Would you... would you want to be my practice partner? You have great muscles to work with!', choices: [
-                    { text: 'I\'d be honored, Elena!', relationship: 5, callback: () => { hideDialogue(); spawnEmote('💪'); updateHUD(); } }
-                ]}
-            ],
-            maya: [
-                { speaker: 'Maya', text: 'I had a dream about you last night. In Bali, we believe dreams are messages from the spirit world. You were surrounded by golden light...', choices: [
-                    { text: 'What does that mean?', relationship: 4, callback: () => { hideDialogue(); spawnEmote('✨'); updateHUD(); } }
-                ]},
-                { speaker: 'Maya', text: '*places a crystal near you* This amethyst has been charged under the full moon. It will protect your energy even after you leave here.', choices: [
-                    { text: 'Thank you, Maya. That means a lot.', relationship: 4, callback: () => { hideDialogue(); spawnEmote('💜'); updateHUD(); } }
-                ]}
-            ]
-        };
-
-        const talks = randomTalks[therapist.id];
-        const talk = talks[Math.floor(Math.random() * talks.length)];
-
-        const choices = talk.choices.map(c => ({
-            text: c.text,
-            callback: () => {
-                if(c.relationship) {
-                    gameState.relationships[therapist.id] += c.relationship;
+            const scrollRef = useRef(null);
+            const textareaRef = useRef(null);
+            const studioTextareaRef = useRef(null);
+
+            // Copy/Download Listeners
+            useEffect(() => {
+                const handleGlobalClick = (e) => {
+                    const copyBtn = e.target.closest('.copy-btn');
+                    if (copyBtn) {
+                        navigator.clipboard.writeText(copyBtn.dataset.code);
+                        copyBtn.innerHTML = "Copied!";
+                        setTimeout(() => copyBtn.innerHTML = "Copy", 2000);
+                    }
+                    const downloadBtn = e.target.closest('.download-btn');
+                    if (downloadBtn) {
+                        const ext = downloadBtn.dataset.lang === 'html' ? 'html' : downloadBtn.dataset.lang === 'javascript' ? 'js' : downloadBtn.dataset.lang === 'python' ? 'py' : 'txt';
+                        const blob = new Blob([downloadBtn.dataset.code], {type: 'text/plain'});
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a'); a.href = url; a.download = `snippet.${ext}`; a.click(); URL.revokeObjectURL(url);
+                    }
+                };
+                document.addEventListener('click', handleGlobalClick);
+                return () => document.removeEventListener('click', handleGlobalClick);
+            }, []);
+
+            useEffect(() => {
+                if (view === 'chat' && scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+                if (window.Prism) window.Prism.highlightAll();
+            }, [messages, isGenerating, view, studioCode]);
+
+            useEffect(() => { localStorage.setItem('vipul_api_keys', JSON.stringify(apiKeys)); }, [apiKeys]);
+
+            const handleInput = (e, ref, setter) => {
+                setter(e.target.value);
+                if (ref.current) {
+                    ref.current.style.height = 'auto';
+                    ref.current.style.height = `${Math.min(ref.current.scrollHeight, 120)}px`;
                 }
-                c.callback();
-            }
-        }));
+            };
 
-        showDialogue(talk.speaker, talk.text, choices);
-    }
-}
+            // Normal Chat API
+            const handleChatSubmit = async (e) => {
+                e?.preventDefault();
+                if (!input.trim() || isGenerating) return;
 
-function endSession() {
-    clearInterval(sessionTimer);
-    gameState.phase = 'dialogue';
+                const userText = input.trim();
+                if (!apiKeys[activeModel.providerKey]) {
+                    setMessages(prev => [...prev, { role: 'user', content: userText }, { role: 'assistant', content: `⚠️ **API Key Missing!** Add your **${activeModel.providerKey.toUpperCase()}** key in settings.` }]);
+                    setInput(''); return;
+                }
 
-    document.getElementById('massage-ui').style.display = 'none';
-    document.getElementById('session-timer').style.display = 'none';
+                setInput('');
+                if (textareaRef.current) textareaRef.current.style.height = '40px';
+                setModelMenuOpen(false);
+                
+                const newMsg = { role: 'user', content: userText };
+                setMessages(prev => [...prev, newMsg]);
+                setIsGenerating(true);
 
-    const therapist = gameState.currentTherapist;
-    const rel = gameState.relationships[therapist.id] || 0;
+                if (activeModel.isImage || userText.toLowerCase().startsWith('/img')) {
+                    const prompt = userText.replace('/img', '').trim() || userText;
+                    try {
+                        const res = await fetch("https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell", {
+                            method: "POST", headers: { "Authorization": `Bearer ${apiKeys.hf}`, "Content-Type": "application/json" },
+                            body: JSON.stringify({ inputs: prompt })
+                        });
+                        if(!res.ok) throw new Error("Image gen failed");
+                        const blob = await res.blob();
+                        setMessages(prev => [...prev, { role: 'assistant', content: `**Model:** ${activeModel.name}\n**Prompt:** ${prompt}`, image: URL.createObjectURL(blob) }]);
+                    } catch (err) {
+                        setMessages(prev => [...prev, { role: 'assistant', content: "⚠️ Image generation failed." }]);
+                    }
+                    setIsGenerating(false); return;
+                }
 
-    // Bonus coins based on stats
-    const bonusCoins = Math.floor((gameState.stats.relaxation + gameState.stats.satisfaction) / 10);
-    gameState.coins += bonusCoins;
+                const endpoint = activeModel.providerKey === 'groq' ? "https://api.groq.com/openai/v1/chat/completions" : "https://openrouter.ai/api/v1/chat/completions";
+                
+                try {
+                    const response = await fetch(endpoint, {
+                        method: "POST", headers: { "Authorization": `Bearer ${apiKeys[activeModel.providerKey]}`, "Content-Type": "application/json" },
+                        body: JSON.stringify({ model: activeModel.id, messages: [{role:'system', content:'You are Vipul AI. Format code elegantly with markdown.'}, ...messages.map(m=>({role:m.role,content:m.content})), newMsg], stream: true })
+                    });
+                    if (!response.ok) throw new Error("API Error");
 
-    // End session dialogue
-    const endDialogues = {
-        sakura: rel > 30 
-            ? `*holds your hand gently* Thank you for trusting me today. Every session with you feels like... like coming home. I hope you feel the same way. 🌸`
-            : `*bows* Thank you for this session. Your body has released much tension. Please come again soon. Take care of yourself.`,
-        elena: rel > 30
-            ? `*sits beside you* Hey... I just want you to know that you're not just another client to me. You're... special. *tucks hair behind ear* Same time next week?`
-            : `*stretches* Great session! You're really improving. Those knots are getting smaller each time. Keep doing those stretches I showed you!`,
-        maya: rel > 30
-            ? `*takes both your hands* The universe brought us together for a reason. I feel our energies are intertwined now. This is... rare and precious. 🌿`
-            : `*places hands in prayer* The healing energy flows strong in you. The spirits are pleased. Go in peace and carry this light with you.`
-    };
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder("utf-8");
+                    let textBuffer = '';
+                    setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
-    showDialogue(therapist.name, endDialogues[therapist.id], [
-        { text: rel > 30 ? 'I feel the same way. Until next time. ❤️' : 'Thank you so much. I feel wonderful!', callback: () => {
-            hideDialogue();
-            showNotification(`✨ Session complete! +${bonusCoins} Gold earned`);
-            addJournalEntry(`Had a ${rel > 30 ? 'deeply meaningful' : 'wonderful'} session with ${therapist.name}. Feeling refreshed.`);
-            gameState.stats.energy = Math.max(20, gameState.stats.energy);
-
-            setTimeout(() => {
-                goToLobby();
-            }, 2000);
-        }}
-    ]);
-
-    updateHUD();
-}
-
-function visitShop() {
-    document.getElementById('lobby-nav').style.display = 'none';
-
-    const gifts = [
-        { name: '🌹 Rose Bouquet', price: 50, relationship: 10, desc: 'A beautiful bouquet of red roses' },
-        { name: '🍫 Chocolate Box', price: 30, relationship: 5, desc: 'Premium Belgian chocolates' },
-        { name: '💎 Crystal Pendant', price: 100, relationship: 15, desc: 'A shimmering amethyst pendant' },
-        { name: '📚 Poetry Book', price: 40, relationship: 8, desc: 'Classic love poems from around the world' },
-        { name: '🧴 Luxury Oil Set', price: 80, relationship: 12, desc: 'Premium essential oil collection' }
-    ];
-
-    let choices = gifts.map(g => ({
-        text: `${g.name} - ${g.price} Gold (${g.desc})`,
-        callback: () => {
-            if(gameState.coins >= g.price) {
-                gameState.coins -= g.price;
-                hideDialogue();
-                // Show therapist selection for gift
-                showDialogue('Shop Keeper', `Wonderful choice! Who would you like to give the ${g.name} to?`,
-                    therapists.map(t => ({
-                        text: `${t.emoji} ${t.name}`,
-                        callback: () => {
-                            gameState.relationships[t.id] = (gameState.relationships[t.id] || 0) + g.relationship;
-                            hideDialogue();
-                            spawnEmote('🎁');
-                            showNotification(`🎁 ${t.name} loved the ${g.name}! +${g.relationship} Bond`);
-                            addJournalEntry(`Gave ${g.name} to ${t.name}. She seemed very happy!`);
-                            updateHUD();
-                            setTimeout(goToLobby, 2000);
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) break;
+                        const chunk = decoder.decode(value, { stream: true });
+                        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+                        for (const line of lines) {
+                            if (line.includes('[DONE]')) continue;
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const data = JSON.parse(line.replace('data: ', ''));
+                                    if (data.choices[0].delta.content) {
+                                        textBuffer += data.choices[0].delta.content;
+                                        setMessages(prev => { const newMsgs = [...prev]; newMsgs[newMsgs.length - 1].content = textBuffer; return newMsgs; });
+                                    }
+                                } catch (e) {}
+                            }
                         }
-                    })).concat([{ text: 'Nevermind', callback: () => { gameState.coins += g.price; hideDialogue(); goToLobby(); } }])
-                );
-            } else {
-                hideDialogue();
-                showNotification('❌ Not enough gold!');
-                setTimeout(goToLobby, 1500);
-            }
-            updateHUD();
+                    }
+                } catch (error) {
+                    setMessages(prev => { const newMsgs = [...prev]; newMsgs[newMsgs.length - 1].content = `⚠️ Error connecting to ${activeModel.name}.`; return newMsgs; });
+                }
+                setIsGenerating(false);
+            };
+
+            // Studio Edit API
+            const handleStudioSubmit = async (e) => {
+                e?.preventDefault();
+                if (!studioInput.trim() || isStudioGenerating) return;
+
+                if (!apiKeys[activeModel.providerKey]) {
+                    alert(`Missing API Key for ${activeModel.providerKey.toUpperCase()}. Add it in settings.`);
+                    return;
+                }
+                
+                // Prevent Image model selection in Code Studio
+                if (activeModel.isImage) {
+                    alert("Please select a text/coding model (like DeepSeek or Llama) to edit code.");
+                    return;
+                }
+
+                const userRequest = studioInput.trim();
+                setStudioInput('');
+                if (studioTextareaRef.current) studioTextareaRef.current.style.height = '40px';
+                setModelMenuOpen(false);
+                setIsStudioGenerating(true);
+
+                const sysPrompt = studioType === 'html' 
+                    ? "You are Vip Code Studio AI. You strictly modify the user's provided HTML code based on their request. Output ONLY the raw, completely updated HTML code inside ```html ... ``` blocks. Do not output any other text or explanations."
+                    : "You are Vip Code Studio AI. Build a comprehensive Single Page Web App embedded in one HTML file (HTML/Tailwind/JS). Update the user's code based on request. Output ONLY the complete, production-ready HTML code inside ```html ... ``` blocks. No explanations.";
+
+                const prompt = `Current Code:\n\`\`\`html\n${studioCode}\n\`\`\`\n\nUser Request: ${userRequest}\n\nReturn the ENTIRE updated HTML code.`;
+                const endpoint = activeModel.providerKey === 'groq' ? "https://api.groq.com/openai/v1/chat/completions" : "https://openrouter.ai/api/v1/chat/completions";
+
+                try {
+                    const response = await fetch(endpoint, {
+                        method: "POST", headers: { "Authorization": `Bearer ${apiKeys[activeModel.providerKey]}`, "Content-Type": "application/json" },
+                        body: JSON.stringify({ model: activeModel.id, messages: [{role:'system', content:sysPrompt}, {role:'user', content:prompt}] })
+                    });
+                    if (!response.ok) throw new Error("API Error");
+                    const data = await response.json();
+                    let aiText = data.choices[0].message.content;
+                    
+                    const codeMatch = aiText.match(/```(?:html)?\n([\s\S]*?)```/);
+                    if (codeMatch && codeMatch[1]) {
+                        setStudioCode(codeMatch[1].trim());
+                    } else if(aiText.includes('<html') || aiText.includes('<div')) {
+                        setStudioCode(aiText.replace(/```html/g, '').replace(/```/g, '').trim());
+                    }
+                    setStudioTab('preview');
+                } catch (err) {
+                    alert(`Engine Error (${activeModel.name}). Ensure API key is valid.`);
+                }
+                setIsStudioGenerating(false);
+            };
+
+            const downloadWebApp = () => {
+                if (studioType === 'html') {
+                    const blob = new Blob([studioCode], {type: 'text/html'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = 'index.html'; a.click();
+                } else {
+                    const zip = new JSZip();
+                    zip.file("index.html", studioCode);
+                    zip.generateAsync({type:"blob"}).then(function(content) {
+                        const url = URL.createObjectURL(content);
+                        const a = document.createElement('a'); a.href = url; a.download = 'vipul-webapp.zip'; a.click();
+                    });
+                }
+            };
+
+            // Render Model Dropdown Component (reusable)
+            const ModelDropdown = () => (
+                <AnimatePresence>
+                    {modelMenuOpen && (
+                        <motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} transition={{ duration: 0.15 }} className="absolute bottom-full left-0 w-full bg-[#111116] border border-glassBorder rounded-2xl shadow-2xl mb-3 z-50 overflow-hidden flex flex-col max-h-[50vh]">
+                            <div className="p-3 border-b border-glassBorder bg-white/5 font-bold text-sm text-white">Select AI Engine</div>
+                            <div className="overflow-y-auto p-2 space-y-4">
+                                {MODEL_GROUPS.map((group) => (
+                                    <div key={group.providerKey} className="px-1"><div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1.5 px-2">{group.providerName}</div>
+                                        <div className="space-y-1">{group.models.map((m) => (
+                                            <button key={m.id} type="button" onClick={() => { setActiveModel({...m, providerKey: group.providerKey}); setModelMenuOpen(false); }} className={`w-full flex flex-col items-start p-2.5 rounded-xl text-left transition-all ${activeModel.id === m.id ? (view === 'studio' ? 'bg-neon-purple/15 border border-neon-purple/30 text-neon-purple' : 'bg-neon-cyan/15 border border-neon-cyan/30 text-neon-cyan') : 'border border-transparent hover:bg-white/5 text-gray-300'}`}><div className="text-sm font-semibold">{m.name}</div><div className="text-xs text-gray-500">{m.desc}</div></button>
+                                        ))}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            );
+
+            return (
+                <div className="w-full h-full flex flex-col relative bg-deep font-sans">
+                    <div className="ambient-bg"></div>
+
+                    {/* App Header */}
+                    <header className="flex-shrink-0 h-14 px-4 flex items-center justify-between border-b border-glassBorder bg-[#030305]/80 backdrop-blur-md z-30">
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => setSidebarOpen(true)} className="p-1.5 text-gray-300 hover:text-white transition-colors">
+                                <Icons.Menu />
+                            </button>
+                            <span className="font-bold tracking-wide text-lg bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                                Vipul AI {view === 'studio' && <span className="text-neon-purple text-xs uppercase tracking-widest ml-1 border border-neon-purple/50 px-2 py-0.5 rounded-full">Studio</span>}
+                            </span>
+                        </div>
+                        {view === 'chat' ? (
+                            <button onClick={() => setSettingsOpen(true)} className="p-1.5 text-gray-400 hover:text-neon-cyan transition-colors"><Icons.Settings /></button>
+                        ) : (
+                            <button onClick={() => setView('chat')} className="p-1.5 text-gray-400 hover:text-red-400 transition-colors flex items-center gap-1 text-sm font-medium"><Icons.X /> Close</button>
+                        )}
+                    </header>
+
+                    {/* Sidebar Overlay */}
+                    <AnimatePresence>
+                        {sidebarOpen && (
+                            <>
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40" onClick={() => setSidebarOpen(false)} />
+                                <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="fixed top-0 left-0 h-full w-[290px] sidebar-glass z-50 flex flex-col shadow-2xl">
+                                    <div className="p-4 border-b border-glassBorder flex items-center gap-3 bg-white/5">
+                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-cyan to-neon-purple flex items-center justify-center font-bold text-lg shadow-[0_0_15px_rgba(0,229,255,0.3)]">V</div>
+                                        <div><div className="font-bold text-sm tracking-wide text-white">Vipul Aspirant</div><div className="text-[10px] text-neon-cyan uppercase tracking-widest font-mono">Premium OS</div></div>
+                                    </div>
+
+                                    <div className="flex-1 overflow-y-auto p-3 space-y-4 custom-scrollbar">
+                                        <button onClick={() => { setView('studio'); setSidebarOpen(false); }} className="w-full py-4 px-4 rounded-xl bg-gradient-to-r from-neon-purple/20 to-transparent border border-neon-purple/30 flex items-center justify-between group hover:border-neon-purple transition-all shadow-[0_0_20px_rgba(179,0,255,0.1)]">
+                                            <div className="flex items-center gap-3 text-neon-purple"><Icons.Code /><div className="text-left"><div className="font-bold text-sm text-white group-hover:text-neon-purple transition-colors">Vip Code Studio</div><div className="text-[10px] uppercase tracking-wider text-gray-400">Build Apps Instantly</div></div></div>
+                                            <Icons.Play />
+                                        </button>
+
+                                        <button onClick={() => { setMessages([]); setView('chat'); setSidebarOpen(false); }} className="w-full py-2.5 px-3 rounded-xl bg-white/5 border border-white/10 flex items-center gap-3 hover:border-neon-cyan/50 transition-colors">
+                                            <div className="text-neon-cyan"><svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></div>
+                                            <span className="text-sm font-medium text-white">New Chat Session</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="p-4 border-t border-glassBorder bg-[#050508]">
+                                        <button onClick={() => { setSettingsOpen(true); setSidebarOpen(false); }} className="w-full py-2.5 px-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 flex items-center gap-2 text-sm font-medium transition-colors text-white">
+                                            <Icons.Settings /> Settings & Keys
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Settings Modal */}
+                    <AnimatePresence>
+                        {settingsOpen && (
+                            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setSettingsOpen(false)} />
+                                <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-[#0f0f14] border border-glassBorder w-full max-w-sm rounded-3xl shadow-2xl relative z-10 p-6">
+                                    <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4 text-neon-cyan"><Icons.Key /> <h2 className="text-xl font-bold text-white">API Integration</h2></div>
+                                    <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-2">
+                                        <div><label className="text-xs text-gray-400 font-bold uppercase tracking-wider">OpenRouter Key (DeepSeek)</label><input type="password" value={apiKeys.openrouter} onChange={e => setApiKeys({...apiKeys, openrouter: e.target.value})} className="settings-input focus:border-neon-cyan" /></div>
+                                        <div><label className="text-xs text-gray-400 font-bold uppercase tracking-wider">Groq Key (Llama 3)</label><input type="password" value={apiKeys.groq} onChange={e => setApiKeys({...apiKeys, groq: e.target.value})} className="settings-input focus:border-neon-purple" /></div>
+                                        <div><label className="text-xs text-gray-400 font-bold uppercase tracking-wider">Hugging Face Key (Vision)</label><input type="password" value={apiKeys.hf} onChange={e => setApiKeys({...apiKeys, hf: e.target.value})} className="settings-input focus:border-blue-500" /></div>
+                                    </div>
+                                    <button onClick={() => setSettingsOpen(false)} className="w-full mt-8 py-3 rounded-xl bg-white text-black font-bold text-sm hover:bg-gray-200 active:scale-95 transition-all">Save & Close</button>
+                                </motion.div>
+                            </div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* --- VIEW ROUTER --- */}
+                    {view === 'chat' ? (
+                        <>
+                            <main ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-6 scroll-smooth z-10 pb-6 relative">
+                                {messages.length === 0 ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto px-2">
+                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-neon-cyan/20 to-neon-purple/20 border border-white/10 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(0,229,255,0.15)]"><Icons.Sparkle /></div>
+                                        <h2 className="text-2xl font-bold mb-2">Vipul OS Active</h2>
+                                        <p className="text-sm text-gray-400 mb-8">Accessing advanced reasoning modules.</p>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col gap-6 max-w-3xl mx-auto">
+                                        {messages.map((msg, idx) => (
+                                            <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-3 w-full ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                                                <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${msg.role === 'user' ? 'bg-[#1a1a24] border border-white/10' : 'bg-gradient-to-tr from-neon-cyan to-blue-500 shadow-[0_0_10px_rgba(0,229,255,0.3)]'}`}>
+                                                    {msg.role === 'user' ? <span className="text-xs font-bold text-white">V</span> : <Icons.Sparkle />}
+                                                </div>
+                                                <div className={`max-w-[100%] md:max-w-[85%] rounded-2xl p-4 shadow-sm w-full ${msg.role === 'user' ? 'bg-white/5 border border-white/10' : 'bg-transparent'}`}>
+                                                    {msg.image && <img src={msg.image} alt="AI Gen" className="w-full rounded-lg mb-3 border border-white/10" />}
+                                                    {msg.content ? (
+                                                        <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }} />
+                                                    ) : (
+                                                        <div className="h-6 flex items-center"><div className="thinking-orb"></div></div>
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                )}
+                            </main>
+
+                            <div className="flex-shrink-0 w-full glass-panel p-3 pb-safe z-30 relative">
+                                <div className="max-w-3xl mx-auto relative">
+                                    <ModelDropdown />
+                                    <form onSubmit={handleChatSubmit} className="chat-input-container p-1">
+                                        <div className="flex items-center justify-between px-3 pt-2 pb-1">
+                                            <button type="button" onClick={() => setModelMenuOpen(!modelMenuOpen)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-gray-300 transition-colors border border-white/5">
+                                                <span className={`w-2 h-2 rounded-full ${apiKeys[activeModel.providerKey] ? 'bg-green-400 shadow-[0_0_8px_#4ade80]' : 'bg-red-500'} mr-1`}></span>
+                                                {activeModel.name} <Icons.ChevronDown />
+                                            </button>
+                                        </div>
+                                        <div className="flex items-end gap-2 p-1.5">
+                                            <textarea ref={textareaRef} value={input} onChange={(e) => handleInput(e, textareaRef, setInput)} onFocus={() => setModelMenuOpen(false)} onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSubmit(); } }} placeholder={`Message ${activeModel.name}...`} className="w-full bg-transparent border-none focus:ring-0 resize-none text-white placeholder-gray-500 py-2 px-2 text-[16px] m-0" style={{ height: '40px', minHeight: '40px' }} />
+                                            <button type="submit" disabled={!input.trim() || isGenerating} className="p-2.5 rounded-xl bg-white/10 text-white disabled:opacity-30 flex-shrink-0 active:scale-95 transition-all border border-white/10 hover:bg-white/20"><Icons.Send /></button>
+                                        </div>
+                                    </form>
+                                    <div className="text-center mt-2 text-[10px] text-gray-500 font-mono tracking-widest">VIPUL AI • ENGINE ACTIVE</div>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        /* VIP CODE STUDIO VIEW */
+                        <div className="flex-1 flex flex-col bg-[#050508] relative">
+                            {/* Studio Header Options */}
+                            <div className="flex-shrink-0 p-3 flex items-center justify-between border-b border-white/5 bg-white/5 backdrop-blur-md z-10">
+                                <div className="flex p-1 bg-black/50 rounded-xl border border-white/10">
+                                    <button onClick={() => setStudioTab('preview')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${studioTab === 'preview' ? 'bg-white/20 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}><Icons.Play /> Preview</button>
+                                    <button onClick={() => setStudioTab('code')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${studioTab === 'code' ? 'bg-white/20 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}><Icons.Code /> Code</button>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <select value={studioType} onChange={(e) => setStudioType(e.target.value)} className="bg-transparent text-xs font-bold uppercase tracking-wider text-neon-purple border-none focus:ring-0 cursor-pointer">
+                                        <option value="html" className="bg-black">Single HTML</option>
+                                        <option value="webapp" className="bg-black">Full Web App</option>
+                                    </select>
+                                    <button onClick={downloadWebApp} className="p-2 rounded-lg bg-neon-purple/20 text-neon-purple hover:bg-neon-purple/40 transition-colors" title="Export Project"><Icons.Download /></button>
+                                </div>
+                            </div>
+
+                            {/* Main Studio Area */}
+                            <div className="flex-1 relative overflow-hidden bg-white">
+                                {studioTab === 'preview' ? (
+                                    <iframe srcDoc={studioCode} className="studio-frame" sandbox="allow-scripts allow-modals allow-forms"></iframe>
+                                ) : (
+                                    <div className="absolute inset-0 bg-[#09090b] overflow-y-auto p-4 custom-scrollbar text-sm">
+                                        <pre><code className="language-html">{studioCode}</code></pre>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Studio AI Edit Bar */}
+                            <div className="flex-shrink-0 p-3 bg-black/80 backdrop-blur-xl border-t border-white/10 relative">
+                                <div className="max-w-3xl mx-auto relative">
+                                    <ModelDropdown />
+                                    <form onSubmit={handleStudioSubmit} className="chat-input-container p-1 border-neon-purple/30 focus-within:border-neon-purple/60 focus-within:box-shadow-[0_0_20px_rgba(179,0,255,0.2)]">
+                                        <div className="flex items-center justify-between px-3 pt-2 pb-1">
+                                            <button type="button" onClick={() => setModelMenuOpen(!modelMenuOpen)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-gray-300 transition-colors border border-white/5">
+                                                <span className={`w-2 h-2 rounded-full ${apiKeys[activeModel.providerKey] ? 'bg-green-400 shadow-[0_0_8px_#4ade80]' : 'bg-red-500'} mr-1`}></span>
+                                                {activeModel.name} <Icons.ChevronDown />
+                                            </button>
+                                            <div className="text-[10px] text-neon-purple uppercase font-bold tracking-widest flex items-center gap-1">
+                                                <Icons.Sparkle /> AI Editor
+                                            </div>
+                                        </div>
+                                        <div className="flex items-end gap-2 p-1.5">
+                                            <textarea ref={studioTextareaRef} value={studioInput} onChange={(e) => handleInput(e, studioTextareaRef, setStudioInput)} onFocus={() => setModelMenuOpen(false)} onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleStudioSubmit(); } }} placeholder="e.g., 'Make the header red and add animation'..." className="w-full bg-transparent border-none focus:ring-0 resize-none text-white placeholder-gray-500 py-2 px-2 text-[15px] m-0" style={{ height: '40px', minHeight: '40px' }} />
+                                            <button type="submit" disabled={!studioInput.trim() || isStudioGenerating} className="p-2.5 rounded-xl bg-neon-purple/30 text-white disabled:opacity-30 flex-shrink-0 active:scale-95 transition-all border border-neon-purple/50 hover:bg-neon-purple/50">
+                                                {isStudioGenerating ? <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin"></div> : <Icons.Send />}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
         }
-    }));
 
-    choices.push({ text: '← Back to Lobby', callback: () => { hideDialogue(); goToLobby(); } });
-
-    showDialogue('Shop Keeper', 'Welcome to the Gift Shop! 🎁 A thoughtful gift can deepen your bond with any therapist. What catches your eye?', choices);
-}
-
-function viewJournal() {
-    const entries = gameState.journalEntries.length > 0 
-        ? gameState.journalEntries.slice(-5).reverse().join('\n\n📝 ')
-        : 'No entries yet. Start your spa journey to fill your journal!';
-
-    let statusText = '\n\n--- Relationships ---\n';
-    therapists.forEach(t => {
-        const rel = gameState.relationships[t.id] || 0;
-        const hearts = '❤️'.repeat(Math.min(Math.floor(rel / 10), 5));
-        const empty = '🤍'.repeat(5 - Math.min(Math.floor(rel / 10), 5));
-        statusText += `${t.emoji} ${t.name}: ${hearts}${empty} (${rel})\n`;
-    });
-
-    showDialogue('📖 Your Journal', `Day ${gameState.day} | Chapter ${gameState.currentChapter}\n\n📝 ${entries}${statusText}`, [
-        { text: 'Close Journal', callback: () => { hideDialogue(); } }
-    ]);
-}
-
-function rest() {
-    gameState.day++;
-    gameState.stats.energy = 100;
-    gameState.stats.relaxation = Math.max(0, gameState.stats.relaxation - 10);
-    gameState.coins += 100;
-
-    addJournalEntry(`Day ${gameState.day}: Rested well and feel energized for a new day at the spa.`);
-
-    showNotification(`🌙 A new day begins! Day ${gameState.day} | +100 Gold`);
-    updateHUD();
-}
-
-// ==========================================
-// UI FUNCTIONS
-// ==========================================
-
-function showDialogue(speaker, text, choices) {
-    const box = document.getElementById('dialogue-box');
-    document.getElementById('speaker-name').textContent = speaker;
-    document.getElementById('dialogue-text').textContent = '';
-    document.getElementById('dialogue-choices').innerHTML = '';
-    box.style.display = 'block';
-
-    // Typewriter effect
-    let index = 0;
-    const textEl = document.getElementById('dialogue-text');
-    const typeInterval = setInterval(() => {
-        if(index < text.length) {
-            textEl.textContent += text[index];
-            index++;
-        } else {
-            clearInterval(typeInterval);
-            // Show choices
-            if(choices) {
-                const choicesDiv = document.getElementById('dialogue-choices');
-                choices.forEach(c => {
-                    const btn = document.createElement('button');
-                    btn.className = 'choice-btn';
-                    btn.textContent = c.text;
-                    btn.onclick = () => {
-                        if(c.callback) c.callback();
-                        else if(c.next !== undefined) {
-                            // Handled elsewhere
-                        }
-                    };
-                    choicesDiv.appendChild(btn);
-                });
-            }
-        }
-    }, 20);
-}
-
-function hideDialogue() {
-    document.getElementById('dialogue-box').style.display = 'none';
-}
-
-function updateHUD() {
-    document.getElementById('bar-relaxation').style.width = gameState.stats.relaxation + '%';
-    document.getElementById('bar-satisfaction').style.width = gameState.stats.satisfaction + '%';
-    document.getElementById('bar-energy').style.width = gameState.stats.energy + '%';
-    document.getElementById('bar-mood').style.width = gameState.stats.mood + '%';
-    document.getElementById('coins-display').textContent = `💰 ${gameState.coins} Gold`;
-    document.getElementById('day-display').textContent = `Day ${gameState.day} | Ch.${gameState.currentChapter}`;
-}
-
-function showNotification(text) {
-    const notif = document.createElement('div');
-    notif.className = 'notification';
-    notif.textContent = text;
-    document.getElementById('ui-overlay').appendChild(notif);
-    setTimeout(() => notif.remove(), 3000);
-}
-
-function spawnEmote(emoji) {
-    const emote = document.createElement('div');
-    emote.className = 'emote-particle';
-    emote.textContent = emoji;
-    emote.style.left = (window.innerWidth / 2 + (Math.random() - 0.5) * 200) + 'px';
-    emote.style.top = (window.innerHeight / 2) + 'px';
-    document.getElementById('ui-overlay').appendChild(emote);
-    setTimeout(() => emote.remove(), 2000);
-}
-
-function addJournalEntry(entry) {
-    gameState.journalEntries.push(entry);
-}
-
-function hexToCSS(hex) {
-    const r = (hex >> 16) & 255;
-    const g = (hex >> 8) & 255;
-    const b = hex & 255;
-    return `rgb(${r},${g},${b})`;
-}
-
-function showCredits() {
-    showDialogue('About Serenity Spa', 'A narrative massage therapy simulation game. Build relationships with unique therapists, experience their stories, and find your inner peace. Each therapist has their own personality, backstory, and special massage techniques. Deepen your bonds through conversations and thoughtful gifts.\n\n🎮 Made with Three.js\n💜 A tasteful wellness experience', [
-        { text: 'Close', callback: hideDialogue }
-    ]);
-}
-
-// ==========================================
-// INITIALIZE
-// ==========================================
-
-initThreeJS();
-buildLobbyScene();
-animate();
-</script>
-
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
